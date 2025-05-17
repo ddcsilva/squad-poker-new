@@ -52,6 +52,48 @@ export class SalaService {
   }
 
   /**
+   * Permite um usuário entrar em uma sala existente
+   */
+  async entrarEmSala(
+    codigoSala: string,
+    nomeUsuario: string,
+    tipoUsuario: 'participante' | 'espectador'
+  ): Promise<Sala> {
+    // 1. Buscar a sala pelo código
+    const sala = await this.firebaseService.buscarSala(codigoSala);
+
+    // 2. Verificar se a sala existe
+    if (!sala) {
+      throw new Error('Sala não encontrada');
+    }
+
+    // 3. Verificar se a sala está ativa
+    if (sala.status === 'encerrada') {
+      throw new Error('Esta sala já foi encerrada');
+    }
+
+    // 4. Criar novo usuário
+    const novoUsuario: Usuario = {
+      id: uuidv4(),
+      nome: nomeUsuario,
+      voto: null,
+      cor: this.gerarCorAleatoria(),
+      tipo: tipoUsuario,
+    };
+
+    // 5. Adicionar à lista de jogadores
+    sala.jogadores.push(novoUsuario);
+
+    // 6. Salvar a sala atualizada
+    await this.firebaseService.salvarSala(sala);
+
+    // 7. Atualizar o signal
+    this.salaAtual.set(sala);
+
+    return sala;
+  }
+
+  /**
    * Gera uma cor aleatória para identificar o usuário
    */
   private gerarCorAleatoria(): string {

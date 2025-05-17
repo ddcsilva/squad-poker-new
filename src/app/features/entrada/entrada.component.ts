@@ -90,12 +90,29 @@ export class EntradaComponent {
 
   async entrarEmSala(): Promise<void> {
     if (this.botaoEntrarHabilitado()) {
-      // Stub - implementaremos depois
-      console.log('Entrando na sala...', {
-        nome: this.nomeUsuario(),
-        tipo: this.tipoUsuario(),
-        codigo: this.codigoSala(),
-      });
+      try {
+        // 1. Ativar indicador de carregamento
+        this.entrandoSala.set(true);
+
+        // 2. Tenta entrar na sala
+        const sala = await this.salaService.entrarEmSala(this.codigoSala(), this.nomeUsuario(), this.tipoUsuario());
+
+        // 3. Encontra o usuário recém-adicionado (último da lista)
+        const usuario = sala.jogadores[sala.jogadores.length - 1];
+
+        // 4. Salvar no UsuarioService
+        this.usuarioService.definirUsuario(usuario);
+
+        // 5. Navegar para a sala
+        this.router.navigate(['/sala', sala.id]);
+      } catch (error: any) {
+        // 6. Tratar erros específicos
+        console.error('Erro ao entrar na sala:', error);
+        // Aqui implementaremos feedback visual de erro depois
+      } finally {
+        // 7. Desativar carregamento
+        this.entrandoSala.set(false);
+      }
     }
   }
 }
