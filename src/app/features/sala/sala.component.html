@@ -1,0 +1,26 @@
+<!-- src/app/features/sala/sala.component.html -->
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-lg w-full max-w-4xl overflow-hidden">
+    <!-- Cabeçalho similar ao EntradaComponent -->
+    <div class="text-center p-6 bg-gradient-to-r from-poker-light to-white">
+      <h1 class="text-3xl font-bold text-poker-blue">♠️ Squad Poker</h1>
+      <p class="text-gray-600 mt-1">Sala: {{ salaId }}</p>
+    </div>
+
+    <!-- Conteúdo principal -->
+    <div class="p-6">
+      <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+        <p class="text-xl text-gray-600">🚧 Sala em construção... 🚧</p>
+        <p class="mt-4 text-gray-500">
+          Bem-vindo,
+          <span class="font-medium text-poker-blue">{{ usuarioService.usuarioAtual()?.nome || 'Visitante' }}</span
+          >!
+        </p>
+        <p class="mt-2 text-sm text-gray-400">Tipo de usuário: {{ usuarioService.usuarioAtual()?.tipo }}</p>
+      </div>
+    </div>
+
+    <!-- Rodapé -->
+    <div class="px-6 py-3 bg-gray-50 text-center text-xs text-gray-500">Desenvolvido por Danilo Silva</div>
+  </div>
+</div>

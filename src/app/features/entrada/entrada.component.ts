@@ -2,6 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SalaService } from '../../core/services/sala.service';
+import { UsuarioService } from '../../core/services/usuario.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-entrada',
@@ -12,6 +14,8 @@ import { SalaService } from '../../core/services/sala.service';
 export class EntradaComponent {
   // Injeção de dependências
   private salaService = inject(SalaService);
+  private usuarioService = inject(UsuarioService);
+  private router = inject(Router);
 
   // Estados primários com Signals
   modo = signal<'criar' | 'entrar'>('criar');
@@ -57,21 +61,26 @@ export class EntradaComponent {
     this.codigoSala.set(input.value);
   }
 
-  // Ações principais
   async criarSala(): Promise<void> {
     if (this.botaoCriarHabilitado()) {
       try {
-        // Ativar indicador de carregamento
+        // 1. Ativar indicador de carregamento
         this.criandoSala.set(true);
 
-        // Criar a sala usando o serviço
+        // 2. Criar a sala no Firebase
         const sala = await this.salaService.criarSala(this.nomeUsuario(), this.descricaoSala(), this.tipoUsuario());
 
-        console.log('Sala criada com sucesso!', sala);
-        // Navegação será implementada depois
+        // 3. Recuperar o usuário criado (primeiro jogador da sala)
+        const usuario = sala.jogadores[0];
+
+        // 4. Salvar este usuário localmente
+        this.usuarioService.definirUsuario(usuario);
+
+        // 5. Navegar para a sala
+        this.router.navigate(['/sala', sala.id]);
       } catch (error) {
         console.error('Erro ao criar sala:', error);
-        // Tratamento de erro será implementado depois
+        // Futuramente: exibir mensagem de erro ao usuário
       } finally {
         // Desativar indicador de carregamento
         this.criandoSala.set(false);
