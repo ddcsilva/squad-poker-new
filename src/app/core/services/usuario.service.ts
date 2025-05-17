@@ -31,6 +31,27 @@ export class UsuarioService {
   }
 
   /**
+   * Atualiza o voto do usuário atual
+   */
+  atualizarVotoUsuario(voto: string | null): void {
+    const usuarioAtual = this._usuarioAtual();
+
+    if (usuarioAtual) {
+      // Criar uma cópia atualizada do usuário
+      const usuarioAtualizado = {
+        ...usuarioAtual,
+        voto,
+      };
+
+      // Atualizar o signal
+      this._usuarioAtual.set(usuarioAtualizado);
+
+      // Persistir no localStorage
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarioAtualizado));
+    }
+  }
+
+  /**
    * Remove o usuário atual (logout)
    */
   limparUsuario(): void {

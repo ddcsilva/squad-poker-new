@@ -69,8 +69,16 @@ export class SalaComponent implements OnInit, OnDestroy {
 
           // Atualizar estado de carta selecionada com base no voto atual
           const usuarioAtual = this.usuarioService.usuarioAtual();
-          if (usuarioAtual && usuarioAtual.voto) {
-            this.cartaSelecionada.set(usuarioAtual.voto);
+          if (usuarioAtual) {
+            // Buscar o usuário atualizado do array de jogadores para ter o voto mais recente
+            const jogadorAtualizado = sala.jogadores.find(j => j.id === usuarioAtual.id);
+            if (jogadorAtualizado) {
+              // Atualizar o usuário no serviço para manter tudo consistente
+              this.usuarioService.atualizarVotoUsuario(jogadorAtualizado.voto);
+
+              // Atualizar estado local da carta selecionada
+              this.cartaSelecionada.set(jogadorAtualizado.voto);
+            }
           }
 
           // Se os votos acabaram de ser revelados, definir pontuação inicial
@@ -104,7 +112,7 @@ export class SalaComponent implements OnInit, OnDestroy {
   copiarCodigoSala(): void {
     navigator.clipboard.writeText(this.salaId).then(() => {
       this.copiado.set(true);
-      setTimeout(() => this.copiado.set(false), 2000);
+      setTimeout(() => this.copiado.set(false), 1500);
     });
   }
 
@@ -117,7 +125,7 @@ export class SalaComponent implements OnInit, OnDestroy {
     const usuario = this.usuarioService.usuarioAtual()!;
 
     // Apenas participantes podem votar, não espectadores
-    if (usuario.tipo !== 'espectador') {
+    if (usuario.tipo === 'participante') {
       // Se clicou na mesma carta, "desvota"
       const novoValor = usuario.voto === valor ? null : valor;
 
