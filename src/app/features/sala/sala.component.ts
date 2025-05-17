@@ -26,6 +26,7 @@ export class SalaComponent implements OnInit, OnDestroy {
   // Estados
   carregando = signal<boolean>(true);
   erro = signal<string | null>(null);
+  copiado = signal<boolean>(false);
   salaId = '';
   cartasPoker = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
   cartaSelecionada = signal<string | null>(null);
@@ -36,12 +37,6 @@ export class SalaComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.salaId = this.route.snapshot.paramMap.get('id') || '';
     this.carregarSala();
-
-    // Definir valor inicial da carta selecionada com base no voto atual do usuário, se disponível
-    const usuarioAtual = this.usuarioService.usuarioAtual();
-    if (usuarioAtual && usuarioAtual.voto) {
-      this.cartaSelecionada.set(usuarioAtual.voto);
-    }
   }
 
   ngOnDestroy(): void {
@@ -72,6 +67,12 @@ export class SalaComponent implements OnInit, OnDestroy {
         next: sala => {
           this.carregando.set(false);
 
+          // Atualizar estado de carta selecionada com base no voto atual
+          const usuarioAtual = this.usuarioService.usuarioAtual();
+          if (usuarioAtual && usuarioAtual.voto) {
+            this.cartaSelecionada.set(usuarioAtual.voto);
+          }
+
           // Se os votos acabaram de ser revelados, definir pontuação inicial
           if (sala.votosRevelados && this.pontuacaoFinal() === '') {
             const { temEmpate } = this.verificarEmpate();
@@ -99,7 +100,15 @@ export class SalaComponent implements OnInit, OnDestroy {
     return this.salaService.salaAtual();
   }
 
-  // Método para registrar voto
+  // Método para copiar código da sala
+  copiarCodigoSala(): void {
+    navigator.clipboard.writeText(this.salaId).then(() => {
+      this.copiado.set(true);
+      setTimeout(() => this.copiado.set(false), 2000);
+    });
+  }
+
+  // Método para registrar voto (com suporte a "desvotar")
   async votar(valor: string): Promise<void> {
     if (!this.sala || !this.usuarioService.usuarioAtual()) {
       return;
@@ -107,20 +116,22 @@ export class SalaComponent implements OnInit, OnDestroy {
 
     const usuario = this.usuarioService.usuarioAtual()!;
 
-    // Atualizar estado local imediatamente para feedback visual rápido
-    this.cartaSelecionada.set(valor);
-
     // Apenas participantes podem votar, não espectadores
-    if (usuario.tipo !== 'participante') {
-      return;
-    }
+    if (usuario.tipo !== 'espectador') {
+      // Se clicou na mesma carta, "desvota"
+      const novoValor = usuario.voto === valor ? null : valor;
 
-    try {
-      await this.salaService.registrarVoto(this.salaId, usuario.id, valor);
-    } catch (error) {
-      console.error('Erro ao registrar voto:', error);
-      // Resetar estado local em caso de erro
-      this.cartaSelecionada.set(null);
+      // Atualizar estado local para feedback visual imediato
+      this.cartaSelecionada.set(novoValor);
+
+      try {
+        // Registrar voto (ou limpar voto)
+        await this.salaService.registrarVoto(this.salaId, usuario.id, novoValor);
+      } catch (error) {
+        console.error('Erro ao atualizar voto:', error);
+        // Resetar estado local em caso de erro para voltar à posição anterior
+        this.cartaSelecionada.set(usuario.voto);
+      }
     }
   }
 

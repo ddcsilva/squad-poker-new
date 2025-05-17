@@ -108,7 +108,7 @@ export class SalaService {
   /**
    * Registra o voto de um jogador
    */
-  async registrarVoto(salaId: string, jogadorId: string, voto: string): Promise<void> {
+  async registrarVoto(salaId: string, jogadorId: string, voto: string | null): Promise<void> {
     // 1. Obter a sala atual
     const sala = this.salaAtual();
 
