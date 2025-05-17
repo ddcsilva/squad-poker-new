@@ -20,12 +20,16 @@ export class SalaComponent implements OnInit, OnDestroy {
   private salaService = inject(SalaService);
   public usuarioService = inject(UsuarioService);
 
+  // Math exposto para uso no template
+  public Math = Math;
+
   // Estados
   carregando = signal<boolean>(true);
   erro = signal<string | null>(null);
   salaId = '';
   cartasPoker = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
   cartaSelecionada = signal<string | null>(null);
+  pontuacaoFinal = signal<string>('');
 
   private salaSubscription?: Subscription;
 
@@ -65,8 +69,18 @@ export class SalaComponent implements OnInit, OnDestroy {
 
       // Observar mudanças na sala em tempo real
       this.salaSubscription = this.salaService.observarSala(this.salaId).subscribe({
-        next: () => {
+        next: sala => {
           this.carregando.set(false);
+
+          // Se os votos acabaram de ser revelados, definir pontuação inicial
+          if (sala.votosRevelados && this.pontuacaoFinal() === '') {
+            const { temEmpate } = this.verificarEmpate();
+            const maisVotado = this.calcularMaisVotado();
+
+            if (!temEmpate && maisVotado.valor !== '-') {
+              this.pontuacaoFinal.set(maisVotado.valor);
+            }
+          }
         },
         error: error => {
           console.error('Erro ao carregar sala:', error);
@@ -110,17 +124,7 @@ export class SalaComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Métodos auxiliares para o template
-  obterParticipantesQueVotaram(): number {
-    if (!this.sala?.jogadores) return 0;
-    return this.sala.jogadores.filter(j => j.tipo === 'participante' && j.voto !== null).length;
-  }
-
-  obterTotalParticipantes(): number {
-    if (!this.sala?.jogadores) return 0;
-    return this.sala.jogadores.filter(j => j.tipo === 'participante').length;
-  }
-
+  // Controles do moderador
   async revelarVotos(): Promise<void> {
     if (!this.ehDonoDaSala()) return;
 
@@ -136,40 +140,62 @@ export class SalaComponent implements OnInit, OnDestroy {
 
     try {
       await this.salaService.ocultarVotos(this.salaId);
+      // Limpar pontuação final ao reiniciar
+      this.pontuacaoFinal.set('');
     } catch (error) {
       console.error('Erro ao ocultar votos:', error);
     }
   }
 
+  // Atualiza a pontuação definida pelo dono da sala
+  atualizarPontuacaoFinal(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.pontuacaoFinal.set(input.value);
+  }
+
+  // Método para verificar se o usuário é dono da sala
   ehDonoDaSala(): boolean {
     if (!this.sala || !this.usuarioService.usuarioAtual()) return false;
     return this.usuarioService.usuarioAtual()!.nome === this.sala.nomeDono;
   }
 
-  calcularMedia(): string {
-    if (!this.sala) return '0';
+  // Verifica se há empate nos votos mais frequentes
+  verificarEmpate(): { temEmpate: boolean; valores: string[] } {
+    if (!this.sala) return { temEmpate: false, valores: [] };
 
-    // Filtra apenas jogadores que votaram valores numéricos (ignora '?', '☕')
-    const votosNumericos = this.sala.jogadores
-      .filter(j => j.voto !== null)
-      .map(j => j.voto!)
-      .filter(voto => !isNaN(Number(voto)));
+    // Contagem de cada voto
+    const contagem: Record<string, number> = {};
+    const votos = this.sala.jogadores.filter(j => j.voto !== null).map(j => j.voto!);
 
-    if (votosNumericos.length === 0) return '-';
+    if (votos.length === 0) return { temEmpate: false, valores: [] };
 
-    // Calcula a média dos votos numéricos
-    const soma = votosNumericos.reduce((total, voto) => total + Number(voto), 0);
-    const media = soma / votosNumericos.length;
+    // Conta ocorrências
+    votos.forEach(voto => {
+      contagem[voto] = (contagem[voto] || 0) + 1;
+    });
 
-    return media.toFixed(1);
+    // Encontra o maior número de votos
+    const maiorContagem = Math.max(...Object.values(contagem));
+
+    // Encontra todos os valores com essa contagem
+    const valoresEmpatados = Object.entries(contagem)
+      .filter(([_, count]) => count === maiorContagem)
+      .map(([valor, _]) => valor);
+
+    // Temos empate se mais de um valor tem a contagem máxima
+    return {
+      temEmpate: valoresEmpatados.length > 1,
+      valores: valoresEmpatados,
+    };
   }
 
-  calcularMaisVotado(): { valor: string; contagem: number } {
-    if (!this.sala) return { valor: '-', contagem: 0 };
+  // Calcula o valor mais votado e estatísticas
+  calcularMaisVotado(): { valor: string; contagem: number; total: number } {
+    if (!this.sala) return { valor: '-', contagem: 0, total: 0 };
 
     const votos = this.sala.jogadores.filter(j => j.voto !== null).map(j => j.voto!);
 
-    if (votos.length === 0) return { valor: '-', contagem: 0 };
+    if (votos.length === 0) return { valor: '-', contagem: 0, total: 0 };
 
     // Conta ocorrências de cada voto
     const contagem: Record<string, number> = {};
@@ -188,6 +214,21 @@ export class SalaComponent implements OnInit, OnDestroy {
       }
     });
 
-    return { valor: maisVotado, contagem: maiorContagem };
+    return {
+      valor: maisVotado,
+      contagem: maiorContagem,
+      total: votos.length,
+    };
+  }
+
+  // Métodos auxiliares para o template
+  obterParticipantesQueVotaram(): number {
+    if (!this.sala?.jogadores) return 0;
+    return this.sala.jogadores.filter(j => j.tipo === 'participante' && j.voto !== null).length;
+  }
+
+  obterTotalParticipantes(): number {
+    if (!this.sala?.jogadores) return 0;
+    return this.sala.jogadores.filter(j => j.tipo === 'participante').length;
   }
 }
