@@ -1,4 +1,3 @@
-// src/app/features/sala/sala.component.ts
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -6,22 +5,26 @@ import { Subscription } from 'rxjs';
 import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { Sala } from '../../core/models/sala.model';
+import { CartaoPokerComponent } from '../../shared/components/cartao-poker/cartao-poker.component';
 
 @Component({
   selector: 'app-sala',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CartaoPokerComponent],
   templateUrl: './sala.component.html',
 })
 export class SalaComponent implements OnInit, OnDestroy {
+  // Injeção de dependências
   private route = inject(ActivatedRoute);
+  public router = inject(Router);
   private salaService = inject(SalaService);
   public usuarioService = inject(UsuarioService);
-  public router = inject(Router);
 
+  // Estados
   carregando = signal<boolean>(true);
   erro = signal<string | null>(null);
   salaId = '';
+  cartasPoker = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
 
   private salaSubscription?: Subscription;
 
@@ -73,5 +76,25 @@ export class SalaComponent implements OnInit, OnDestroy {
   // Getter para acesso fácil à sala no template
   get sala(): Sala | null {
     return this.salaService.salaAtual();
+  }
+
+  // Método para registrar voto
+  async votar(valor: string): Promise<void> {
+    if (!this.sala || !this.usuarioService.usuarioAtual()) {
+      return;
+    }
+
+    const usuario = this.usuarioService.usuarioAtual()!;
+
+    // Apenas participantes podem votar, não espectadores
+    if (usuario.tipo !== 'participante') {
+      return;
+    }
+
+    try {
+      await this.salaService.registrarVoto(this.salaId, usuario.id, valor);
+    } catch (error) {
+      console.error('Erro ao registrar voto:', error);
+    }
   }
 }

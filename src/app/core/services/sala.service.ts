@@ -107,6 +107,33 @@ export class SalaService {
   }
 
   /**
+   * Registra o voto de um jogador
+   */
+  async registrarVoto(salaId: string, jogadorId: string, voto: string): Promise<void> {
+    // 1. Obter a sala atual
+    const sala = this.salaAtual();
+
+    if (!sala) {
+      throw new Error('Sala não encontrada');
+    }
+
+    // 2. Encontrar o jogador
+    const jogador = sala.jogadores.find(j => j.id === jogadorId);
+
+    if (!jogador) {
+      throw new Error('Jogador não encontrado na sala');
+    }
+
+    // 3. Registrar o voto
+    jogador.voto = voto;
+
+    // 4. Salvar no Firebase
+    await this.firebaseService.salvarSala(sala);
+
+    // 5. O signal já está atualizado, pois modificamos o mesmo objeto
+  }
+
+  /**
    * Gera uma cor aleatória para identificar o usuário
    */
   private gerarCorAleatoria(): string {
