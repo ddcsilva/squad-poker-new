@@ -97,4 +97,15 @@ export class SalaComponent implements OnInit, OnDestroy {
       console.error('Erro ao registrar voto:', error);
     }
   }
+
+  // Métodos auxiliares para o template
+  obterParticipantesQueVotaram(): number {
+    if (!this.sala?.jogadores) return 0;
+    return this.sala.jogadores.filter(j => j.tipo === 'participante' && j.voto !== null).length;
+  }
+
+  obterTotalParticipantes(): number {
+    if (!this.sala?.jogadores) return 0;
+    return this.sala.jogadores.filter(j => j.tipo === 'participante').length;
+  }
 }

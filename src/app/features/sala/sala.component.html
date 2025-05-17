@@ -116,9 +116,9 @@
           <div class="flex items-center space-x-1">
             <span class="text-sm">Participantes que já votaram:</span>
             <span class="text-sm font-medium">
-              {{ sala?.jogadores?.filter(j => j.tipo === 'participante' && j.voto !== null).length || 0 }}
+              {{ obterParticipantesQueVotaram() }}
               de
-              {{ sala?.jogadores?.filter(j => j.tipo === 'participante').length || 0 }}
+              {{ obterTotalParticipantes() }}
             </span>
           </div>
         </div>
