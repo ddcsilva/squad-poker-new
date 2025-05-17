@@ -1,26 +1,89 @@
-<!-- src/app/features/sala/sala.component.html -->
 <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-xl shadow-lg w-full max-w-4xl overflow-hidden">
-    <!-- Cabeçalho similar ao EntradaComponent -->
-    <div class="text-center p-6 bg-gradient-to-r from-poker-light to-white">
-      <h1 class="text-3xl font-bold text-poker-blue">♠️ Squad Poker</h1>
-      <p class="text-gray-600 mt-1">Sala: {{ salaId }}</p>
+  <div class="bg-white rounded-xl shadow-lg w-full max-w-6xl overflow-hidden">
+    <!-- 1. Cabeçalho e informações da sala -->
+    <div class="p-4 bg-gradient-to-r from-poker-light to-white flex justify-between items-center border-b">
+      <div>
+        <h1 class="text-2xl font-bold text-poker-blue">♠️ Squad Poker</h1>
+        <p class="text-sm text-gray-600">
+          Sala: <span class="font-medium">{{ sala?.descricaoVotacao || 'Carregando...' }}</span>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span
+          class="text-sm"
+          [class.text-green-600]="sala?.status === 'aguardando'"
+          [class.text-red-600]="sala?.status === 'encerrada'">
+          {{ sala?.status === 'aguardando' ? '🟢 Ativa' : '🔴 Encerrada' }}
+        </span>
+        <button class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-md transition-colors">Sair</button>
+      </div>
     </div>
 
     <!-- Conteúdo principal -->
-    <div class="p-6">
-      <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
-        <p class="text-xl text-gray-600">🚧 Sala em construção... 🚧</p>
-        <p class="mt-4 text-gray-500">
-          Bem-vindo,
-          <span class="font-medium text-poker-blue">{{ usuarioService.usuarioAtual()?.nome || 'Visitante' }}</span
-          >!
-        </p>
-        <p class="mt-2 text-sm text-gray-400">Tipo de usuário: {{ usuarioService.usuarioAtual()?.tipo }}</p>
+    <div *ngIf="carregando()" class="p-8 text-center">
+      <div class="animate-spin h-10 w-10 border-4 border-poker-blue border-t-transparent rounded-full mx-auto"></div>
+      <p class="mt-4 text-gray-600">Carregando sala...</p>
+    </div>
+
+    <div *ngIf="erro()" class="p-8 text-center">
+      <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mx-auto max-w-lg">
+        <p>{{ erro() }}</p>
+      </div>
+      <button (click)="router.navigate(['/'])" class="mt-4 px-4 py-2 bg-poker-blue text-white rounded-md">
+        Voltar para o início
+      </button>
+    </div>
+
+    <div *ngIf="!carregando() && !erro() && sala" class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- 2. Lista de participantes (coluna esquerda) -->
+      <div class="bg-gray-50 rounded-lg p-4 col-span-1">
+        <h2 class="text-lg font-bold text-gray-700 mb-4">Participantes</h2>
+
+        <div *ngIf="sala.jogadores.length === 0" class="text-center p-4 text-gray-500">Nenhum participante na sala</div>
+
+        <div *ngFor="let jogador of sala.jogadores" class="bg-white rounded-md p-3 mb-2 flex items-center">
+          <!-- Avatar com primeira letra e cor -->
+          <div
+            [style.background-color]="jogador.cor"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3">
+            {{ jogador.nome.charAt(0).toUpperCase() }}
+          </div>
+
+          <!-- Nome e status -->
+          <div class="flex-1">
+            <div class="font-medium">
+              {{ jogador.nome }}
+              <span *ngIf="jogador.nome === sala.nomeDono" class="text-xs ml-1">👑</span>
+            </div>
+            <div
+              class="text-xs"
+              [class.text-green-600]="jogador.voto !== null"
+              [class.text-gray-400]="jogador.voto === null">
+              {{ jogador.voto !== null ? 'Votou' : 'Não votou' }}
+            </div>
+          </div>
+
+          <!-- Tipo de jogador -->
+          <div class="text-xs bg-gray-100 px-2 py-1 rounded">
+            {{ jogador.tipo === 'participante' ? '🎮 Jogador' : '👁️ Espectador' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Área de votação (coluna do meio e direita) -->
+      <div class="bg-white rounded-lg border border-gray-200 p-4 col-span-1 md:col-span-2">
+        <h2 class="text-lg font-bold text-gray-700 mb-4">Votação: Rodada {{ sala.rodadaAtual }}</h2>
+
+        <!-- Estado placeholder para implementação futura -->
+        <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+          <p class="text-gray-600">🃏 Área de votação em construção...</p>
+          <p class="mt-4 text-sm text-gray-500">Em breve você poderá votar e ver os resultados aqui.</p>
+        </div>
       </div>
     </div>
 
     <!-- Rodapé -->
-    <div class="px-6 py-3 bg-gray-50 text-center text-xs text-gray-500">Desenvolvido por Danilo Silva</div>
+    <div class="px-6 py-3 bg-gray-50 text-center text-xs text-gray-500 border-t">Desenvolvido por Danilo Silva</div>
   </div>
 </div>

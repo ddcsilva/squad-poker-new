@@ -4,6 +4,7 @@ import { FirebaseService } from './firebase.service';
 import { Sala } from '../models/sala.model';
 import { Usuario } from '../models/usuario.model';
 import { v4 as uuidv4 } from 'uuid';
+import { Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -91,6 +92,18 @@ export class SalaService {
     this.salaAtual.set(sala);
 
     return sala;
+  }
+
+  /**
+   * Observa mudanças em uma sala em tempo real
+   */
+  observarSala(id: string): Observable<Sala> {
+    return this.firebaseService.observarSala(id).pipe(
+      tap((sala: Sala) => {
+        // Atualiza o signal sempre que houver mudanças
+        this.salaAtual.set(sala);
+      })
+    );
   }
 
   /**
