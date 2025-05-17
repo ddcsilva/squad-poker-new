@@ -1,6 +1,7 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SalaService } from '../../core/services/sala.service';
 
 @Component({
   selector: 'app-entrada',
@@ -9,17 +10,28 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './entrada.component.html',
 })
 export class EntradaComponent {
-  // Estado primário com Signals
+  // Injeção de dependências
+  private salaService = inject(SalaService);
+
+  // Estados primários com Signals
   modo = signal<'criar' | 'entrar'>('criar');
   nomeUsuario = signal<string>('');
   tipoUsuario = signal<'participante' | 'espectador'>('participante');
   descricaoSala = signal<string>('');
   codigoSala = signal<string>('');
 
-  // Estado computado (derivado)
-  botaoCriarHabilitado = computed(() => this.nomeUsuario().trim() !== '' && this.descricaoSala().trim() !== '');
+  // Estado de UI
+  criandoSala = signal<boolean>(false);
+  entrandoSala = signal<boolean>(false);
 
-  botaoEntrarHabilitado = computed(() => this.nomeUsuario().trim() !== '' && this.codigoSala().trim() !== '');
+  // Estados computados (derivados)
+  botaoCriarHabilitado = computed(
+    () => !this.criandoSala() && this.nomeUsuario().trim() !== '' && this.descricaoSala().trim() !== ''
+  );
+
+  botaoEntrarHabilitado = computed(
+    () => !this.entrandoSala() && this.nomeUsuario().trim() !== '' && this.codigoSala().trim() !== ''
+  );
 
   // Métodos para manipular o estado
   alternarModo(novoModo: 'criar' | 'entrar'): void {
@@ -45,26 +57,36 @@ export class EntradaComponent {
     this.codigoSala.set(input.value);
   }
 
-  // Ações finais (stub por enquanto)
-  criarSala(): void {
+  // Ações principais
+  async criarSala(): Promise<void> {
     if (this.botaoCriarHabilitado()) {
-      console.log('Criando sala...', {
-        nome: this.nomeUsuario(),
-        tipo: this.tipoUsuario(),
-        descricao: this.descricaoSala(),
-      });
-      // Aqui virá a lógica de criação com Firebase
+      try {
+        // Ativar indicador de carregamento
+        this.criandoSala.set(true);
+
+        // Criar a sala usando o serviço
+        const sala = await this.salaService.criarSala(this.nomeUsuario(), this.descricaoSala(), this.tipoUsuario());
+
+        console.log('Sala criada com sucesso!', sala);
+        // Navegação será implementada depois
+      } catch (error) {
+        console.error('Erro ao criar sala:', error);
+        // Tratamento de erro será implementado depois
+      } finally {
+        // Desativar indicador de carregamento
+        this.criandoSala.set(false);
+      }
     }
   }
 
-  entrarEmSala(): void {
+  async entrarEmSala(): Promise<void> {
     if (this.botaoEntrarHabilitado()) {
+      // Stub - implementaremos depois
       console.log('Entrando na sala...', {
         nome: this.nomeUsuario(),
         tipo: this.tipoUsuario(),
         codigo: this.codigoSala(),
       });
-      // Aqui virá a lógica de entrada com Firebase
     }
   }
 }
