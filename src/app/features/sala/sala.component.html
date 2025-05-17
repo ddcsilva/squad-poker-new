@@ -129,9 +129,87 @@
           </div>
         </div>
 
-        <!-- Área para os resultados (implementaremos depois) -->
-        <div *ngIf="sala.votosRevelados" class="border-t pt-4">
-          <p class="text-center text-gray-600">Os resultados serão mostrados aqui quando implementados.</p>
+        <!-- Controles de moderador (apenas para o dono da sala) -->
+        <div *ngIf="ehDonoDaSala() && !sala.votosRevelados" class="border-t pt-4 mt-4">
+          <h3 class="font-medium text-gray-700 mb-2">Controles de Moderador</h3>
+          <button
+            (click)="revelarVotos()"
+            class="px-3 py-2 bg-poker-blue text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+            [disabled]="obterParticipantesQueVotaram() === 0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path
+                fill-rule="evenodd"
+                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                clip-rule="evenodd" />
+            </svg>
+            Revelar Votos
+          </button>
+        </div>
+
+        <!-- Área de resultados (quando votos revelados) -->
+        <div *ngIf="sala.votosRevelados" class="animate-fade-in">
+          <!-- 1. Resumo estatístico -->
+          <div class="p-4 bg-green-50 rounded-lg border border-green-100 mb-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <!-- Média -->
+              <div class="bg-white p-3 rounded-lg shadow-sm">
+                <div class="text-3xl font-bold text-poker-blue">{{ calcularMedia() }}</div>
+                <div class="text-sm text-gray-500">Média</div>
+              </div>
+              <!-- Valor mais votado -->
+              <div class="bg-white p-3 rounded-lg shadow-sm">
+                <div class="text-3xl font-bold text-poker-blue">{{ calcularMaisVotado().valor }}</div>
+                <div class="text-sm text-gray-500">Mais votado ({{ calcularMaisVotado().contagem }})</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Visualização dos votos -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div *ngFor="let jogador of sala.jogadores" class="bg-white p-3 rounded-lg border border-gray-200">
+              <div class="flex items-center mb-2">
+                <!-- Avatar do jogador -->
+                <div
+                  [style.background-color]="jogador.cor"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-2">
+                  {{ jogador.nome.charAt(0).toUpperCase() }}
+                </div>
+                <div class="font-medium">
+                  {{ jogador.nome }}
+                  <span *ngIf="jogador.nome === sala.nomeDono" class="text-xs ml-1">👑</span>
+                </div>
+              </div>
+              <!-- Voto revelado -->
+              <div class="flex justify-center">
+                <div
+                  *ngIf="jogador.voto"
+                  class="w-12 h-16 bg-poker-light border-2 border-poker-blue rounded-md flex items-center justify-center font-bold text-xl text-poker-blue"
+                  [class.bg-yellow-50]="calcularMaisVotado().valor === jogador.voto"
+                  [class.border-yellow-500]="calcularMaisVotado().valor === jogador.voto">
+                  {{ jogador.voto }}
+                </div>
+                <div
+                  *ngIf="!jogador.voto"
+                  class="w-12 h-16 bg-gray-50 border-2 border-gray-200 rounded-md flex items-center justify-center text-gray-400">
+                  -
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Controles de moderador (para dono da sala) -->
+          <div *ngIf="ehDonoDaSala()" class="mt-6 pt-4 border-t">
+            <h3 class="font-medium text-gray-700 mb-2">Controles de Moderador</h3>
+            <div class="flex flex-wrap gap-2">
+              <button
+                class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                (click)="ocultarVotos()">
+                Reiniciar Votação
+              </button>
+              <!-- Mais botões virão aqui depois (Nova rodada) -->
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-// src/app/core/services/sala.service.ts
 import { Injectable, inject, signal } from '@angular/core';
 import { FirebaseService } from './firebase.service';
 import { Sala } from '../models/sala.model';
@@ -131,6 +130,33 @@ export class SalaService {
     await this.firebaseService.salvarSala(sala);
 
     // 5. O signal já está atualizado, pois modificamos o mesmo objeto
+  }
+
+  async revelarVotos(salaId: string): Promise<void> {
+    // 1. Obter sala atual
+    const sala = this.salaAtual();
+
+    if (!sala) {
+      throw new Error('Sala não encontrada');
+    }
+
+    // 2. Atualizar estado
+    sala.votosRevelados = true;
+
+    // 3. Salvar no Firebase
+    await this.firebaseService.salvarSala(sala);
+  }
+
+  async ocultarVotos(salaId: string): Promise<void> {
+    const sala = this.salaAtual();
+
+    if (!sala) {
+      throw new Error('Sala não encontrada');
+    }
+
+    sala.votosRevelados = false;
+
+    await this.firebaseService.salvarSala(sala);
   }
 
   /**
