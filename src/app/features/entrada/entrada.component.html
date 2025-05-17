@@ -6,6 +6,14 @@
       <p class="text-gray-600 mt-1">Planning poker simplificado</p>
     </div>
 
+    <!-- Mensagem de erro -->
+    <div
+      *ngIf="erroMensagem()"
+      class="mx-6 mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded animate-fade-in"
+      role="alert">
+      <p>{{ erroMensagem() }}</p>
+    </div>
+
     <!-- Abas de navegação -->
     <div class="flex border-b">
       <button

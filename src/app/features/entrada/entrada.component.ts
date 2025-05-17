@@ -1,9 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-entrada',
@@ -27,6 +27,8 @@ export class EntradaComponent {
   // Estado de UI
   criandoSala = signal<boolean>(false);
   entrandoSala = signal<boolean>(false);
+  erroMensagem = signal<string | null>(null);
+  tempoErroExibicao = 4000; // 4 segundos
 
   // Estados computados (derivados)
   botaoCriarHabilitado = computed(
@@ -61,26 +63,36 @@ export class EntradaComponent {
     this.codigoSala.set(input.value);
   }
 
+  // Método para exibir mensagens de erro
+  mostrarErro(mensagem: string): void {
+    this.erroMensagem.set(mensagem);
+    // Esconder depois de um tempo
+    setTimeout(() => {
+      this.erroMensagem.set(null);
+    }, this.tempoErroExibicao);
+  }
+
+  // Ações principais
   async criarSala(): Promise<void> {
     if (this.botaoCriarHabilitado()) {
       try {
-        // 1. Ativar indicador de carregamento
+        // Ativar indicador de carregamento
         this.criandoSala.set(true);
 
-        // 2. Criar a sala no Firebase
+        // Criar a sala usando o serviço
         const sala = await this.salaService.criarSala(this.nomeUsuario(), this.descricaoSala(), this.tipoUsuario());
 
-        // 3. Recuperar o usuário criado (primeiro jogador da sala)
+        // Recuperar o usuário criado (primeiro jogador da sala)
         const usuario = sala.jogadores[0];
 
-        // 4. Salvar este usuário localmente
+        // Salvar este usuário localmente
         this.usuarioService.definirUsuario(usuario);
 
-        // 5. Navegar para a sala
+        // Navegar para a sala
         this.router.navigate(['/sala', sala.id]);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao criar sala:', error);
-        // Futuramente: exibir mensagem de erro ao usuário
+        this.mostrarErro(error.message || 'Erro ao criar sala');
       } finally {
         // Desativar indicador de carregamento
         this.criandoSala.set(false);
@@ -91,26 +103,25 @@ export class EntradaComponent {
   async entrarEmSala(): Promise<void> {
     if (this.botaoEntrarHabilitado()) {
       try {
-        // 1. Ativar indicador de carregamento
+        // Ativar indicador de carregamento
         this.entrandoSala.set(true);
 
-        // 2. Tenta entrar na sala
+        // Tenta entrar na sala
         const sala = await this.salaService.entrarEmSala(this.codigoSala(), this.nomeUsuario(), this.tipoUsuario());
 
-        // 3. Encontra o usuário recém-adicionado (último da lista)
+        // Encontra o usuário recém-adicionado (último da lista)
         const usuario = sala.jogadores[sala.jogadores.length - 1];
 
-        // 4. Salvar no UsuarioService
+        // Salvar no UsuarioService
         this.usuarioService.definirUsuario(usuario);
 
-        // 5. Navegar para a sala
+        // Navegar para a sala
         this.router.navigate(['/sala', sala.id]);
       } catch (error: any) {
-        // 6. Tratar erros específicos
         console.error('Erro ao entrar na sala:', error);
-        // Aqui implementaremos feedback visual de erro depois
+        this.mostrarErro(error.message || 'Erro ao entrar na sala');
       } finally {
-        // 7. Desativar carregamento
+        // Desativar carregamento
         this.entrandoSala.set(false);
       }
     }
