@@ -73,31 +73,37 @@
 
       <!-- 3. Área de votação (coluna do meio e direita) -->
       <div class="bg-white rounded-lg border border-gray-200 p-4 col-span-1 md:col-span-2">
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
           <h2 class="text-lg font-bold text-gray-700">Votação: Rodada {{ sala.rodadaAtual }}</h2>
+        </div>
 
-          <!-- Estado da votação -->
-          <div class="text-sm" *ngIf="usuarioService.usuarioAtual()">
-            <span
-              *ngIf="!sala.votosRevelados && usuarioService.usuarioAtual()?.voto"
-              class="bg-green-100 text-green-800 px-2 py-1 rounded">
-              Você votou: {{ usuarioService.usuarioAtual()?.voto }}
-            </span>
-            <span
-              *ngIf="!sala.votosRevelados && !usuarioService.usuarioAtual()?.voto"
-              class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-              Aguardando seu voto...
-            </span>
+        <!-- Status da votação - Área fixa para mobile -->
+        <div class="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-poker-blue shadow-sm">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div class="text-sm font-medium text-gray-700 mb-1 sm:mb-0">Rodada {{ sala.rodadaAtual }}</div>
+
+            <div class="text-sm" *ngIf="usuarioService.usuarioAtual()">
+              <span
+                *ngIf="!sala.votosRevelados && usuarioService.usuarioAtual()?.voto"
+                class="bg-green-100 text-green-800 px-2 py-1 rounded font-medium">
+                Você votou: {{ usuarioService.usuarioAtual()?.voto }}
+              </span>
+              <span
+                *ngIf="!sala.votosRevelados && !usuarioService.usuarioAtual()?.voto"
+                class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-medium">
+                Aguardando seu voto...
+              </span>
+            </div>
           </div>
         </div>
 
         <!-- Cartões de votação (apenas para participantes e quando votos não revelados) -->
         <div *ngIf="!sala.votosRevelados && usuarioService.usuarioAtual()?.tipo === 'participante'" class="mb-6">
-          <div class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9 gap-3 justify-items-center">
+          <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9 gap-3 justify-items-center">
             <app-cartao-poker
               *ngFor="let carta of cartasPoker"
               [valor]="carta"
-              [selecionado]="usuarioService.usuarioAtual()?.voto === carta"
+              [selecionado]="usuarioService.usuarioAtual()?.voto === carta || cartaSelecionada() === carta"
               (selecionar)="votar($event)"></app-cartao-poker>
           </div>
         </div>

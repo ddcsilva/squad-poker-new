@@ -25,12 +25,19 @@ export class SalaComponent implements OnInit, OnDestroy {
   erro = signal<string | null>(null);
   salaId = '';
   cartasPoker = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
+  cartaSelecionada = signal<string | null>(null);
 
   private salaSubscription?: Subscription;
 
   ngOnInit(): void {
     this.salaId = this.route.snapshot.paramMap.get('id') || '';
     this.carregarSala();
+
+    // Definir valor inicial da carta selecionada com base no voto atual do usuário, se disponível
+    const usuarioAtual = this.usuarioService.usuarioAtual();
+    if (usuarioAtual && usuarioAtual.voto) {
+      this.cartaSelecionada.set(usuarioAtual.voto);
+    }
   }
 
   ngOnDestroy(): void {
@@ -86,6 +93,9 @@ export class SalaComponent implements OnInit, OnDestroy {
 
     const usuario = this.usuarioService.usuarioAtual()!;
 
+    // Atualizar estado local imediatamente para feedback visual rápido
+    this.cartaSelecionada.set(valor);
+
     // Apenas participantes podem votar, não espectadores
     if (usuario.tipo !== 'participante') {
       return;
@@ -95,6 +105,8 @@ export class SalaComponent implements OnInit, OnDestroy {
       await this.salaService.registrarVoto(this.salaId, usuario.id, valor);
     } catch (error) {
       console.error('Erro ao registrar voto:', error);
+      // Resetar estado local em caso de erro
+      this.cartaSelecionada.set(null);
     }
   }
 
