@@ -34,7 +34,7 @@
       {{ obterTipoTexto(jogador) }}
     </div>
 
-    <!-- Botão remover (visível apenas quando permitido e não é o dono) -->
+    <!-- Botão remover (visível apenas para o dono da sala) -->
     <button
       *ngIf="podeRemoverJogador(jogador)"
       class="ml-2 text-red-500 hover:text-red-700 p-1"
