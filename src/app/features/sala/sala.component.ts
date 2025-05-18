@@ -304,4 +304,30 @@ export class SalaComponent implements OnInit, OnDestroy {
     if (!rodada.votos) return [];
     return Object.keys(rodada.votos);
   }
+
+  async sairDaSala(): Promise<void> {
+    const usuario = this.usuarioService.usuarioAtual();
+    const sala = this.sala;
+    if (!usuario || !sala) return;
+
+    // Se for dono
+    if (usuario.nome === sala.nomeDono) {
+      const confirmado = window.confirm(
+        'Você é o dono da sala. Sair irá ENCERRAR a sala para todos. Deseja continuar?'
+      );
+      if (confirmado) {
+        await this.salaService.encerrarSala(sala.id);
+      } else {
+        return;
+      }
+    } else {
+      // Participante comum: remove da lista
+      await this.salaService.removerJogadorESalvar(sala, usuario.id);
+    }
+
+    // Limpa dados locais
+    this.usuarioService.limparUsuario();
+    // Navega para tela inicial
+    this.router.navigate(['/']);
+  }
 }

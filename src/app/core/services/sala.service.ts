@@ -253,4 +253,16 @@ export class SalaService {
     const cores = ['#E57373', '#64B5F6', '#81C784', '#FFD54F', '#BA68C8', '#9575CD', '#4DB6AC', '#FF8A65'];
     return cores[Math.floor(Math.random() * cores.length)];
   }
+
+  async encerrarSala(salaId: string): Promise<void> {
+    const sala = this.salaAtual();
+    if (!sala) throw new Error('Sala não encontrada');
+    sala.status = 'encerrada';
+    await this.firebaseService.salvarSala(sala);
+  }
+
+  async removerJogadorESalvar(sala: Sala, jogadorId: string): Promise<void> {
+    sala.jogadores = sala.jogadores.filter(j => j.id !== jogadorId);
+    await this.firebaseService.salvarSala(sala);
+  }
 }
