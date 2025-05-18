@@ -5,14 +5,14 @@ import { Subscription } from 'rxjs';
 import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { Sala, HistoricoRodada } from '../../core/models/sala.model';
-import { CartaoPokerComponent } from '../../shared/components/cartao-poker/cartao-poker.component';
 import { JogadoresListaComponent } from './components/jogadores-lista/jogadores-lista.component';
 import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votacao.compoment';
+import { ResultadoVotacaoComponent } from './components/resultado-votacao/resultado-votacao.component';
 
 @Component({
   selector: 'app-sala',
   standalone: true,
-  imports: [CommonModule, CartaoPokerComponent, JogadoresListaComponent, CartaoVotacaoComponent],
+  imports: [CommonModule, JogadoresListaComponent, CartaoVotacaoComponent, ResultadoVotacaoComponent],
   templateUrl: './sala.component.html',
 })
 export class SalaComponent implements OnInit, OnDestroy {
@@ -202,9 +202,8 @@ export class SalaComponent implements OnInit, OnDestroy {
   }
 
   // Atualiza a pontuação definida pelo dono da sala
-  atualizarPontuacaoFinal(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.pontuacaoFinal.set(input.value);
+  atualizarPontuacaoFinal(valor: string): void {
+    this.pontuacaoFinal.set(valor);
   }
 
   // Método para verificar se o usuário é dono da sala
