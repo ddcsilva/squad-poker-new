@@ -9,6 +9,7 @@ import { JogadoresListaComponent } from './components/jogadores-lista/jogadores-
 import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votacao.compoment';
 import { ResultadoVotacaoComponent } from './components/resultado-votacao/resultado-votacao.component';
 import { ControlesModeracaoComponent } from './components/controles-moderacao/controles-moderacao.component';
+import { HistoricoComponent } from './components/historico/historico.component';
 
 @Component({
   selector: 'app-sala',
@@ -19,6 +20,7 @@ import { ControlesModeracaoComponent } from './components/controles-moderacao/co
     CartaoVotacaoComponent,
     ResultadoVotacaoComponent,
     ControlesModeracaoComponent,
+    HistoricoComponent,
   ],
   templateUrl: './sala.component.html',
 })
@@ -346,5 +348,9 @@ export class SalaComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Erro ao remover jogador:', error);
     }
+  }
+
+  async exportarRodadaHistorico(): Promise<void> {
+    console.log('Exportar rodada do histórico');
   }
 }
