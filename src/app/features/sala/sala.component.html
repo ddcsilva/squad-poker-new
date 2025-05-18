@@ -139,52 +139,12 @@
       <!-- Conteúdo da votação atual (esconder quando estiver no histórico) -->
       <div *ngIf="!mostrandoHistorico()" class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Lista de participantes (coluna esquerda) -->
-        <div class="bg-gray-50 rounded-lg p-4 col-span-1">
-          <h2 class="text-lg font-bold text-gray-700 mb-4">Participantes</h2>
-
-          <div *ngIf="sala.jogadores.length === 0" class="text-center p-4 text-gray-500">
-            Nenhum participante na sala
-          </div>
-
-          <div *ngFor="let jogador of sala.jogadores" class="bg-white rounded-md p-3 mb-2 flex items-center">
-            <!-- Avatar com primeira letra e cor -->
-            <div
-              [style.background-color]="jogador.cor"
-              class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3">
-              {{ jogador.nome.charAt(0).toUpperCase() }}
-            </div>
-
-            <!-- Nome e status -->
-            <div class="flex-1">
-              <div class="font-medium flex items-center">
-                {{ jogador.nome }}
-                <span
-                  *ngIf="jogador.nome === sala.nomeDono"
-                  class="ml-1 inline-flex items-center align-middle"
-                  title="Criador da sala">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    class="h-4 w-4 text-amber-500 fill-current">
-                    <path d="M4 17L2 7l6 5 4-8 4 8 6-5-2 10H4zm0 2h16v2H4v-2z" />
-                  </svg>
-                </span>
-              </div>
-              <div
-                class="text-xs"
-                [class.text-green-600]="jogador.voto !== null"
-                [class.text-gray-400]="jogador.voto === null">
-                {{ jogador.voto !== null ? 'Votou' : 'Não votou' }}
-              </div>
-            </div>
-
-            <!-- Tipo de jogador -->
-            <div class="text-xs bg-gray-100 px-2 py-1 rounded">
-              {{ jogador.tipo === 'participante' ? '🎮 Jogador' : '👁️ Espectador' }}
-            </div>
-          </div>
-        </div>
-
+        <app-jogadores-lista
+          [jogadores]="sala.jogadores"
+          [nomeDono]="sala.nomeDono"
+          [permissaoRemover]="ehDonoDaSala()"
+          (removerJogador)="removerParticipante($event)">
+        </app-jogadores-lista>
         <!-- Área de votação (coluna do meio e direita) -->
         <div class="bg-white rounded-lg border border-gray-200 p-4 col-span-1 md:col-span-2">
           <ng-container *ngIf="sala.status !== 'encerrada'; else salaEncerrada">

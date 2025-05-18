@@ -6,11 +6,12 @@ import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { Sala, HistoricoRodada } from '../../core/models/sala.model';
 import { CartaoPokerComponent } from '../../shared/components/cartao-poker/cartao-poker.component';
+import { JogadoresListaComponent } from './components/jogadores-lista/jogadores-lista.component';
 
 @Component({
   selector: 'app-sala',
   standalone: true,
-  imports: [CommonModule, CartaoPokerComponent],
+  imports: [CommonModule, CartaoPokerComponent, JogadoresListaComponent],
   templateUrl: './sala.component.html',
 })
 export class SalaComponent implements OnInit, OnDestroy {
@@ -329,5 +330,15 @@ export class SalaComponent implements OnInit, OnDestroy {
     this.usuarioService.limparUsuario();
     // Navega para tela inicial
     this.router.navigate(['/']);
+  }
+
+  async removerParticipante(jogadorId: string): Promise<void> {
+    if (!this.sala || !this.ehDonoDaSala()) return;
+
+    try {
+      await this.salaService.removerJogadorESalvar(this.sala, jogadorId);
+    } catch (error) {
+      console.error('Erro ao remover jogador:', error);
+    }
   }
 }
