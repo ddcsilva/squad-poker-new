@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
-import { Sala } from '../../core/models/sala.model';
+import { Sala, HistoricoRodada } from '../../core/models/sala.model';
 import { CartaoPokerComponent } from '../../shared/components/cartao-poker/cartao-poker.component';
 
 @Component({
@@ -34,6 +34,9 @@ export class SalaComponent implements OnInit, OnDestroy {
   // Novo state para formulário
   descricaoNovaRodada = signal<string>('');
   criandoNovaRodada = signal<boolean>(false);
+  // Estados para o histórico
+  mostrandoHistorico = signal<boolean>(false);
+  rodadaSelecionada = signal<HistoricoRodada | null>(null);
 
   private salaSubscription?: Subscription;
 
@@ -279,5 +282,27 @@ export class SalaComponent implements OnInit, OnDestroy {
   obterTotalParticipantes(): number {
     if (!this.sala?.jogadores) return 0;
     return this.sala.jogadores.filter(j => j.tipo === 'participante').length;
+  }
+
+  // Métodos para o histórico
+  mostrarHistorico(mostrar: boolean): void {
+    this.mostrandoHistorico.set(mostrar);
+    // Resetar rodada selecionada ao voltar para lista
+    if (!mostrar) {
+      this.rodadaSelecionada.set(null);
+    }
+  }
+
+  selecionarRodadaHistorico(rodada: HistoricoRodada): void {
+    this.rodadaSelecionada.set(rodada);
+  }
+
+  voltarParaListaHistorico(): void {
+    this.rodadaSelecionada.set(null);
+  }
+
+  // Método auxiliar para pegar IDs de jogadores da rodada
+  getJogadoresIds(rodada: HistoricoRodada): string[] {
+    return Object.keys(rodada.votos);
   }
 }
