@@ -10,6 +10,7 @@ import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votac
 import { ResultadoVotacaoComponent } from './components/resultado-votacao/resultado-votacao.component';
 import { ControlesModeracaoComponent } from './components/controles-moderacao/controles-moderacao.component';
 import { HistoricoComponent } from './components/historico/historico.component';
+import { CabecalhoSalaComponent } from './components/cabecalho-sala/cabecalho-sala.component';
 
 @Component({
   selector: 'app-sala',
@@ -21,6 +22,7 @@ import { HistoricoComponent } from './components/historico/historico.component';
     ResultadoVotacaoComponent,
     ControlesModeracaoComponent,
     HistoricoComponent,
+    CabecalhoSalaComponent,
   ],
   templateUrl: './sala.component.html',
 })
