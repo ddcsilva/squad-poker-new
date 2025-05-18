@@ -286,11 +286,9 @@ export class SalaComponent implements OnInit, OnDestroy {
 
   // Métodos para o histórico
   mostrarHistorico(mostrar: boolean): void {
+    // Reset selected round whenever we toggle history mode
+    this.rodadaSelecionada.set(null);
     this.mostrandoHistorico.set(mostrar);
-    // Resetar rodada selecionada ao voltar para lista
-    if (!mostrar) {
-      this.rodadaSelecionada.set(null);
-    }
   }
 
   selecionarRodadaHistorico(rodada: HistoricoRodada): void {
@@ -303,6 +301,7 @@ export class SalaComponent implements OnInit, OnDestroy {
 
   // Método auxiliar para pegar IDs de jogadores da rodada
   getJogadoresIds(rodada: HistoricoRodada): string[] {
+    if (!rodada.votos) return [];
     return Object.keys(rodada.votos);
   }
 }
