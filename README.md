@@ -1,27 +1,65 @@
-# SquadPoker
+# ♠️ SquadPoker
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.19.
+**SquadPoker** é uma aplicação web colaborativa para _Planning Poker_, criada para facilitar a estimativa de tarefas em times ágeis. Com uma interface moderna, responsiva e intuitiva, permite criar salas, votar em rodadas, acompanhar resultados em tempo real e manter o histórico das votações.
 
-## Development server
+## ✨ Funcionalidades
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- **Criação e entrada em salas**: Participe como _moderador_, _participante_ ou _espectador_.
+- **Votação em tempo real**: Cada participante escolhe sua carta de poker para estimar tarefas.
+- **Revelação e ocultação de votos**: O moderador controla quando os votos são revelados.
+- **Histórico de rodadas**: Consulte rodadas anteriores e exporte resultados.
+- **Gestão de participantes**: Remova usuários, encerre a sala ou inicie novas rodadas.
+- **Interface responsiva**: Experiência fluida em desktop e mobile.
+- **Persistência em nuvem**: Dados das salas e votações salvos no Firebase Firestore.
 
-## Code scaffolding
+## 🚀 Tecnologias
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- **Angular 18** (standalone components)
+- **TailwindCSS** para estilização moderna
+- **Firebase Firestore** para backend em tempo real
+- **RxJS** para reatividade
+- **TypeScript** e **UUID** para tipagem e identificação
+- **html2canvas** e **jsPDF** para exportação de resultados
 
-## Build
+## 🖥️ Como rodar o projeto
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+1. **Clone o repositório:**
 
-## Running unit tests
+   ```bash
+   git clone https://github.com/seu-usuario/squad-poker.git
+   cd squad-poker
+   ```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+2. **Instale as dependências:**
 
-## Running end-to-end tests
+   ```bash
+   npm install
+   ```
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+3. **Configure o Firebase:**
+   - Renomeie `src/environments/environment.ts.example` para `environment.ts` e preencha com suas credenciais do Firebase (ou use as já presentes para testes).
 
-## Further help
+4. **Inicie o servidor de desenvolvimento:**
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+   ```bash
+   npm start
+   ```
+
+   Acesse [http://localhost:4200](http://localhost:4200).
+
+## 🛠️ Scripts úteis
+
+- `npm start` — inicia o servidor local
+- `npm run build` — gera a build de produção
+- `npm test` — executa os testes unitários
+
+## 📁 Estrutura do projeto
+
+- `src/app/features/entrada` — Tela de entrada/criação de sala
+- `src/app/features/sala` — Lógica e interface da sala de votação
+- `src/app/shared/components` — Componentes reutilizáveis (cartão de poker, modais, etc)
+- `src/app/core` — Serviços, modelos e repositórios
+
+## 🔒 Autoria e licença
+
+Desenvolvido por Danilo Silva.
