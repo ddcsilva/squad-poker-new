@@ -70,14 +70,6 @@
                 {{ usuarioService.usuarioAtual()!.nome }}
               </div>
             </div>
-            <span
-              class="ml-1 text-xs px-1.5 py-0.5 rounded"
-              [class.bg-blue-100]="usuarioService.usuarioAtual()!.tipo === 'espectador'"
-              [class.text-blue-800]="usuarioService.usuarioAtual()!.tipo === 'espectador'"
-              [class.bg-indigo-100]="usuarioService.usuarioAtual()!.tipo === 'participante'"
-              [class.text-indigo-800]="usuarioService.usuarioAtual()!.tipo === 'participante'">
-              {{ usuarioService.usuarioAtual()!.tipo === 'participante' ? '🎮' : '👁️' }}
-            </span>
           </div>
 
           <!-- Status (visível apenas em desktop) -->
