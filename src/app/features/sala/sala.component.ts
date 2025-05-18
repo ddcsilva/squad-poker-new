@@ -7,11 +7,12 @@ import { UsuarioService } from '../../core/services/usuario.service';
 import { Sala, HistoricoRodada } from '../../core/models/sala.model';
 import { CartaoPokerComponent } from '../../shared/components/cartao-poker/cartao-poker.component';
 import { JogadoresListaComponent } from './components/jogadores-lista/jogadores-lista.component';
+import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votacao.compoment';
 
 @Component({
   selector: 'app-sala',
   standalone: true,
-  imports: [CommonModule, CartaoPokerComponent, JogadoresListaComponent],
+  imports: [CommonModule, CartaoPokerComponent, JogadoresListaComponent, CartaoVotacaoComponent],
   templateUrl: './sala.component.html',
 })
 export class SalaComponent implements OnInit, OnDestroy {
