@@ -5,12 +5,31 @@ import { Subscription } from 'rxjs';
 import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { Sala, HistoricoRodada } from '../../core/models/sala.model';
-import { CartaoPokerComponent } from '../../shared/components/cartao-poker/cartao-poker.component';
+import { JogadoresListaComponent } from './components/jogadores-lista/jogadores-lista.component';
+import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votacao.compoment';
+import { ResultadoVotacaoComponent } from './components/resultado-votacao/resultado-votacao.component';
+import { ControlesModeracaoComponent } from './components/controles-moderacao/controles-moderacao.component';
+import { HistoricoComponent } from './components/historico/historico.component';
+import { CabecalhoSalaComponent } from './components/cabecalho-sala/cabecalho-sala.component';
+import { StatusVotacaoComponent } from './components/status-votacao/status-votacao.component';
+import { SalaEncerradaComponent } from './components/sala-encerrada/sala-encerrada.component';
+import { ConfirmacaoModalComponent } from '../../shared/components/confirmacao-modal/confirmacao-modal.component';
 
 @Component({
   selector: 'app-sala',
   standalone: true,
-  imports: [CommonModule, CartaoPokerComponent],
+  imports: [
+    CommonModule,
+    JogadoresListaComponent,
+    CartaoVotacaoComponent,
+    ResultadoVotacaoComponent,
+    ControlesModeracaoComponent,
+    HistoricoComponent,
+    CabecalhoSalaComponent,
+    StatusVotacaoComponent,
+    SalaEncerradaComponent,
+    ConfirmacaoModalComponent,
+  ],
   templateUrl: './sala.component.html',
 })
 export class SalaComponent implements OnInit, OnDestroy {
@@ -37,6 +56,10 @@ export class SalaComponent implements OnInit, OnDestroy {
   // Estados para o histórico
   mostrandoHistorico = signal<boolean>(false);
   rodadaSelecionada = signal<HistoricoRodada | null>(null);
+  // Parte do SalaComponent.ts, adicionando os novos estados
+  // Estados para o modal de confirmação de remoção de participante
+  modalRemoverParticipanteVisivel = signal<boolean>(false);
+  participanteParaRemover = signal<string | null>(null); // Armazena o ID do participante selecionado
 
   private salaSubscription?: Subscription;
 
@@ -194,15 +217,13 @@ export class SalaComponent implements OnInit, OnDestroy {
   }
 
   // Método auxiliar para atualizar descrição
-  atualizarDescricaoNovaRodada(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.descricaoNovaRodada.set(input.value);
+  atualizarDescricaoNovaRodada(valor: string): void {
+    this.descricaoNovaRodada.set(valor);
   }
 
   // Atualiza a pontuação definida pelo dono da sala
-  atualizarPontuacaoFinal(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.pontuacaoFinal.set(input.value);
+  atualizarPontuacaoFinal(valor: string): void {
+    this.pontuacaoFinal.set(valor);
   }
 
   // Método para verificar se o usuário é dono da sala
@@ -310,24 +331,57 @@ export class SalaComponent implements OnInit, OnDestroy {
     const sala = this.sala;
     if (!usuario || !sala) return;
 
-    // Se for dono
-    if (usuario.nome === sala.nomeDono) {
-      const confirmado = window.confirm(
-        'Você é o dono da sala. Sair irá ENCERRAR a sala para todos. Deseja continuar?'
-      );
-      if (confirmado) {
+    try {
+      // Se for dono - REMOVER a confirmação redundante
+      if (usuario.nome === sala.nomeDono) {
+        // O usuário já confirmou no modal do CabecalhoSalaComponent
         await this.salaService.encerrarSala(sala.id);
       } else {
-        return;
+        // Participante comum: remove da lista
+        await this.salaService.removerJogador(sala.id, usuario.id);
       }
-    } else {
-      // Participante comum: remove da lista
-      await this.salaService.removerJogadorESalvar(sala, usuario.id);
-    }
 
-    // Limpa dados locais
-    this.usuarioService.limparUsuario();
-    // Navega para tela inicial
-    this.router.navigate(['/']);
+      // Limpar dados locais
+      this.usuarioService.limparUsuario();
+
+      // Navegar para tela inicial
+      this.router.navigate(['/']);
+    } catch (error) {
+      console.error('Erro ao sair da sala:', error);
+    }
+  }
+
+  removerParticipante(jogadorId: string): void {
+    if (!this.sala || !this.ehDonoDaSala()) return;
+
+    this.confirmarRemocaoParticipante(jogadorId);
+  }
+
+  async exportarRodadaHistorico(): Promise<void> {
+    console.log('Exportar rodada do histórico');
+  }
+
+  confirmarRemocaoParticipante(jogadorId: string): void {
+    this.participanteParaRemover.set(jogadorId);
+    this.modalRemoverParticipanteVisivel.set(true);
+  }
+
+  async executarRemocaoParticipante(): Promise<void> {
+    const jogadorId = this.participanteParaRemover();
+    if (!jogadorId || !this.sala) return;
+
+    try {
+      await this.salaService.removerJogador(this.sala.id, jogadorId);
+      this.modalRemoverParticipanteVisivel.set(false);
+      this.participanteParaRemover.set(null);
+    } catch (error) {
+      console.error('Erro ao remover participante:', error);
+      // Poderia mostrar uma mensagem de erro ao usuário aqui
+    }
+  }
+
+  cancelarRemocaoParticipante(): void {
+    this.modalRemoverParticipanteVisivel.set(false);
+    this.participanteParaRemover.set(null);
   }
 }

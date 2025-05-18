@@ -1,24 +1,35 @@
+// src/app/core/services/sala.service.ts
 import { Injectable, inject, signal } from '@angular/core';
-import { FirebaseService } from './firebase.service';
-import { Sala } from '../models/sala.model';
+import { Sala, HistoricoRodada } from '../models/sala.model';
 import { Usuario } from '../models/usuario.model';
-import { v4 as uuidv4 } from 'uuid';
 import { Observable, tap } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
+import { SALA_REPOSITORY } from '../repositories/sala-repository.token';
+import { ISalaRepository } from '../repositories/sala-repository.interface';
+import {
+  JogadorNaoEncontradoError,
+  SalaEncerradaError,
+  SalaNaoEncontradaError,
+  OperacaoInvalidaError,
+} from '../errors/sala-errors';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SalaService {
-  // Injeção de dependências
-  private firebaseService = inject(FirebaseService);
+  // Injeção do repositório usando o token
+  private salaRepository = inject<ISalaRepository>(SALA_REPOSITORY);
 
   // Signal para a sala atual
   salaAtual = signal<Sala | null>(null);
 
   /**
-   * Cria uma nova sala no Firestore
+   * Cria uma nova sala no repositório
    */
   async criarSala(nomeDono: string, descricao: string, tipoUsuario: 'participante' | 'espectador'): Promise<Sala> {
+    // Validações
+    this.validarCamposObrigatorios({ nomeDono, descricao });
+
     // 1. Criar o objeto do usuário dono
     const usuario: Usuario = {
       id: uuidv4(),
@@ -41,8 +52,8 @@ export class SalaService {
       criadaEm: new Date(),
     };
 
-    // 3. Salvar no Firestore
-    await this.firebaseService.salvarSala(novaSala);
+    // 3. Salvar usando o repositório
+    await this.salaRepository.salvar(novaSala);
 
     // 4. Atualizar o signal
     this.salaAtual.set(novaSala);
@@ -59,17 +70,20 @@ export class SalaService {
     nomeUsuario: string,
     tipoUsuario: 'participante' | 'espectador'
   ): Promise<Sala> {
-    // 1. Buscar a sala pelo código
-    const sala = await this.firebaseService.buscarSala(codigoSala);
+    // Validações
+    this.validarCamposObrigatorios({ codigoSala, nomeUsuario });
+
+    // 1. Buscar a sala pelo código usando o repositório
+    const sala = await this.salaRepository.buscarPorId(codigoSala);
 
     // 2. Verificar se a sala existe
     if (!sala) {
-      throw new Error('Sala não encontrada');
+      throw new SalaNaoEncontradaError(codigoSala);
     }
 
     // 3. Verificar se a sala está ativa
     if (sala.status === 'encerrada') {
-      throw new Error('Esta sala já foi encerrada');
+      throw new SalaEncerradaError();
     }
 
     // 4. Criar novo usuário
@@ -84,8 +98,8 @@ export class SalaService {
     // 5. Adicionar à lista de jogadores
     sala.jogadores.push(novoUsuario);
 
-    // 6. Salvar a sala atualizada
-    await this.firebaseService.salvarSala(sala);
+    // 6. Salvar a sala atualizada no repositório
+    await this.salaRepository.salvar(sala);
 
     // 7. Atualizar o signal
     this.salaAtual.set(sala);
@@ -97,7 +111,11 @@ export class SalaService {
    * Observa mudanças em uma sala em tempo real
    */
   observarSala(id: string): Observable<Sala> {
-    return this.firebaseService.observarSala(id).pipe(
+    if (!id) {
+      throw new OperacaoInvalidaError('ID da sala é obrigatório');
+    }
+
+    return this.salaRepository.observar(id).pipe(
       tap((sala: Sala) => {
         // Atualiza o signal sempre que houver mudanças
         this.salaAtual.set(sala);
@@ -109,49 +127,59 @@ export class SalaService {
    * Registra o voto de um jogador
    */
   async registrarVoto(salaId: string, jogadorId: string, voto: string | null): Promise<void> {
-    // 1. Obter a sala atual
-    const sala = this.salaAtual();
+    this.validarCamposObrigatorios({ salaId, jogadorId });
 
-    if (!sala) {
-      throw new Error('Sala não encontrada');
-    }
+    // 1. Obter e validar a sala atual
+    const sala = this.obterESalaValidar(salaId);
 
     // 2. Encontrar o jogador
-    const jogador = sala.jogadores.find(j => j.id === jogadorId);
+    const jogador = this.encontrarJogadorOuErro(sala, jogadorId);
 
-    if (!jogador) {
-      throw new Error('Jogador não encontrado na sala');
+    // Verificar se a votação está aberta
+    if (sala.votosRevelados) {
+      throw new OperacaoInvalidaError('Não é possível votar enquanto os votos estão revelados');
     }
 
     // 3. Registrar o voto
     jogador.voto = voto;
 
-    // 4. Salvar no Firebase
-    await this.firebaseService.salvarSala(sala);
-
-    // 5. O signal já está atualizado, pois modificamos o mesmo objeto
+    // 4. Salvar no repositório
+    await this.salaRepository.salvar(sala);
   }
 
+  /**
+   * Revela os votos da rodada atual
+   */
   async revelarVotos(salaId: string): Promise<void> {
-    // 1. Obter sala atual
-    const sala = this.salaAtual();
+    this.validarCamposObrigatorios({ salaId });
 
-    if (!sala) {
-      throw new Error('Sala não encontrada');
+    // Obter e validar a sala
+    const sala = this.obterESalaValidar(salaId);
+
+    // Verificar se os votos já estão revelados
+    if (sala.votosRevelados) {
+      return; // Já está revelado, não faz nada
     }
 
-    // 2. Atualizar estado
+    // Atualizar estado
     sala.votosRevelados = true;
 
-    // 3. Salvar no Firebase
-    await this.firebaseService.salvarSala(sala);
+    // Salvar no repositório
+    await this.salaRepository.salvar(sala);
   }
 
+  /**
+   * Oculta os votos e reinicia a votação da rodada atual
+   */
   async ocultarVotos(salaId: string): Promise<void> {
-    const sala = this.salaAtual();
+    this.validarCamposObrigatorios({ salaId });
 
-    if (!sala) {
-      throw new Error('Sala não encontrada');
+    // Obter e validar a sala
+    const sala = this.obterESalaValidar(salaId);
+
+    // Verificar se os votos já estão ocultos
+    if (!sala.votosRevelados) {
+      return; // Já está oculto, não faz nada
     }
 
     // Ocultar votos
@@ -162,62 +190,152 @@ export class SalaService {
       jogador.voto = null;
     });
 
-    await this.firebaseService.salvarSala(sala);
+    // Salvar no repositório
+    await this.salaRepository.salvar(sala);
   }
 
   /**
    * Inicia uma nova rodada de votação
    */
   async iniciarNovaRodada(salaId: string, descricaoNova: string, pontuacaoFinal: string): Promise<void> {
-    const sala = this.salaAtual();
+    this.validarCamposObrigatorios({ salaId, descricaoNova });
 
-    if (!sala) {
-      throw new Error('Sala não encontrada');
+    // Obter e validar a sala
+    const sala = this.obterESalaValidar(salaId);
+
+    // Verificar se a sala está ativa
+    if (sala.status === 'encerrada') {
+      throw new SalaEncerradaError();
     }
 
-    // 1. Salvar a rodada atual no histórico
+    // Salvar a rodada atual no histórico (apenas se os votos estiverem revelados)
     if (sala.votosRevelados) {
-      const rodadaAtual = {
-        numero: sala.rodadaAtual,
-        descricao: sala.descricaoVotacao,
-        pontuacaoFinal: pontuacaoFinal || this.calcularMaisVotado(sala.jogadores),
-        votos: {} as {
-          [jogadorId: string]: {
-            valor: string;
-            nome: string;
-            cor: string;
-          };
-        },
-        timestamp: new Date(),
-      };
-
-      // Capturar todos os votos da rodada atual
-      sala.jogadores.forEach(jogador => {
-        if (jogador.voto !== null) {
-          rodadaAtual.votos[jogador.id] = {
-            valor: jogador.voto,
-            nome: jogador.nome,
-            cor: jogador.cor,
-          };
-        }
-      });
-
-      // Adicionar ao histórico
+      const rodadaAtual = this.criarHistoricoRodada(sala, pontuacaoFinal);
       sala.historicoRodadas.push(rodadaAtual);
     }
 
-    // 2. Atualizar rodada e limpar votos
+    // Atualizar rodada e limpar votos
     sala.rodadaAtual++;
     sala.descricaoVotacao = descricaoNova;
     sala.votosRevelados = false;
 
-    // 3. Limpar votos de todos os jogadores
+    // Limpar votos de todos os jogadores
     sala.jogadores.forEach(jogador => {
       jogador.voto = null;
     });
 
-    // 4. Salvar no Firebase
-    await this.firebaseService.salvarSala(sala);
+    // Salvar no repositório
+    await this.salaRepository.salvar(sala);
+  }
+
+  /**
+   * Encerra uma sala permanentemente
+   */
+  async encerrarSala(salaId: string): Promise<void> {
+    this.validarCamposObrigatorios({ salaId });
+
+    // Obter e validar a sala
+    const sala = this.obterESalaValidar(salaId);
+
+    // Verificar se a sala já está encerrada
+    if (sala.status === 'encerrada') {
+      return; // Já está encerrada, não faz nada
+    }
+
+    sala.status = 'encerrada';
+    await this.salaRepository.salvar(sala);
+  }
+
+  /**
+   * Remove um jogador da sala e salva as alterações
+   */
+  async removerJogador(salaId: string, jogadorId: string): Promise<void> {
+    this.validarCamposObrigatorios({ salaId, jogadorId });
+
+    // Obter e validar a sala
+    const sala = this.obterESalaValidar(salaId);
+
+    // Verificar se o jogador existe na sala
+    if (!sala.jogadores.some(j => j.id === jogadorId)) {
+      throw new JogadorNaoEncontradoError(jogadorId);
+    }
+
+    // Remover o jogador
+    sala.jogadores = sala.jogadores.filter(j => j.id !== jogadorId);
+
+    // Salvar no repositório
+    await this.salaRepository.salvar(sala);
+  }
+
+  /**
+   * Verifica se o usuário é o dono da sala
+   */
+  ehDonoDaSala(salaId: string, nomeUsuario: string): boolean {
+    try {
+      const sala = this.obterESalaValidar(salaId);
+      return sala.nomeDono === nomeUsuario;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // ----------- Métodos auxiliares privados -----------
+
+  /**
+   * Obtém a sala atual e valida se existe, lançando erro caso contrário
+   */
+  private obterESalaValidar(salaId: string): Sala {
+    const sala = this.salaAtual();
+
+    if (!sala) {
+      throw new SalaNaoEncontradaError(salaId);
+    }
+
+    // Validar se é a mesma sala sendo solicitada
+    if (sala.id !== salaId) {
+      throw new OperacaoInvalidaError('Operação inválida: IDs de sala não correspondem');
+    }
+
+    return sala;
+  }
+
+  /**
+   * Encontra um jogador em uma sala ou lança erro
+   */
+  private encontrarJogadorOuErro(sala: Sala, jogadorId: string): Usuario {
+    const jogador = sala.jogadores.find(j => j.id === jogadorId);
+
+    if (!jogador) {
+      throw new JogadorNaoEncontradoError(jogadorId);
+    }
+
+    return jogador;
+  }
+
+  /**
+   * Cria um objeto de histórico para a rodada atual
+   */
+  private criarHistoricoRodada(sala: Sala, pontuacaoFinal: string): HistoricoRodada {
+    const rodada: HistoricoRodada = {
+      numero: sala.rodadaAtual,
+      descricao: sala.descricaoVotacao,
+      pontuacaoFinal: pontuacaoFinal || this.calcularMaisVotado(sala.jogadores),
+      votos: {},
+      timestamp: new Date(),
+    };
+
+    // Capturar todos os votos da rodada atual
+    sala.jogadores.forEach(jogador => {
+      if (jogador.voto !== null) {
+        rodada.votos[jogador.id] = {
+          valor: jogador.voto,
+          nome: jogador.nome,
+          cor: jogador.cor,
+        };
+      }
+    });
+
+    return rodada;
   }
 
   /**
@@ -254,15 +372,14 @@ export class SalaService {
     return cores[Math.floor(Math.random() * cores.length)];
   }
 
-  async encerrarSala(salaId: string): Promise<void> {
-    const sala = this.salaAtual();
-    if (!sala) throw new Error('Sala não encontrada');
-    sala.status = 'encerrada';
-    await this.firebaseService.salvarSala(sala);
-  }
-
-  async removerJogadorESalvar(sala: Sala, jogadorId: string): Promise<void> {
-    sala.jogadores = sala.jogadores.filter(j => j.id !== jogadorId);
-    await this.firebaseService.salvarSala(sala);
+  /**
+   * Valida campos obrigatórios em um objeto, lançando erro se algum estiver faltando
+   */
+  private validarCamposObrigatorios(campos: Record<string, any>): void {
+    for (const [nome, valor] of Object.entries(campos)) {
+      if (valor === undefined || valor === null || valor === '') {
+        throw new OperacaoInvalidaError(`O campo '${nome}' é obrigatório`);
+      }
+    }
   }
 }

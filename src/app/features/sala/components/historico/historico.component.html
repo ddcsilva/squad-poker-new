@@ -1,0 +1,157 @@
+<div class="animate-fade-in">
+  <!-- Visão de lista: Lista todas as rodadas (visível quando não há rodada selecionada) -->
+  <div *ngIf="!rodadaSelecionada" class="animate-fade-in">
+    <!-- Cabeçalho do histórico -->
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-medium text-gray-800">Histórico de Rodadas</h3>
+      <span class="text-sm text-gray-500">{{ historicoRodadas.length }} rodadas completadas</span>
+    </div>
+
+    <!-- Lista de rodadas em grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div
+        *ngFor="let rodada of historicoRodadas; trackBy: trackByRodadaNumero"
+        class="bg-white p-4 rounded-lg border border-gray-200 hover:border-poker-blue hover:shadow-md cursor-pointer transition-all"
+        (click)="aoSelecionarRodada(rodada)">
+        <!-- Cabeçalho da rodada -->
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-medium text-poker-blue">Rodada {{ rodada.numero }}</span>
+          <span class="text-xs text-gray-500">{{ rodada.timestamp | date : 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <!-- Detalhes da rodada -->
+        <p class="text-sm text-gray-700 mb-2 line-clamp-1">{{ rodada.descricao }}</p>
+
+        <!-- Pontuação final -->
+        <div class="flex items-center space-x-1">
+          <span class="text-xs text-gray-500">Pontuação:</span>
+          <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded text-sm font-medium">{{
+            rodada.pontuacaoFinal || '-'
+          }}</span>
+        </div>
+      </div>
+
+      <!-- Mensagem quando não há histórico -->
+      <div
+        *ngIf="historicoRodadas.length === 0"
+        class="col-span-full text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+        <p>Nenhuma rodada no histórico.</p>
+        <p class="text-sm mt-2">Complete uma rodada para vê-la aqui.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visão de detalhe: Uma rodada específica (visível quando há rodada selecionada) -->
+  <div *ngIf="rodadaSelecionada" class="animate-fade-in">
+    <div class="bg-white rounded-lg border border-gray-200 p-5">
+      <!-- Cabeçalho com botão voltar -->
+      <div class="flex justify-between items-center mb-4">
+        <button
+          class="text-sm text-poker-blue flex items-center hover:underline"
+          (click)="aoVoltarParaLista()"
+          aria-label="Voltar para a lista">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Voltar para lista
+        </button>
+
+        <button
+          class="text-sm bg-poker-blue text-white px-3 py-1.5 rounded-md flex items-center"
+          (click)="aoExportarRodada()"
+          aria-label="Exportar rodada">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exportar
+        </button>
+      </div>
+
+      <!-- Informações da rodada -->
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h3 class="text-xl font-medium text-gray-800 mb-1">Rodada {{ rodadaSelecionada.numero }}</h3>
+        <p class="text-gray-600 mb-3">{{ rodadaSelecionada.descricao }}</p>
+
+        <div class="flex flex-col sm:flex-row justify-between">
+          <div>
+            <span class="text-sm text-gray-500">Data:</span>
+            <span class="text-sm ml-1">{{ rodadaSelecionada.timestamp | date : 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+
+          <div class="mt-2 sm:mt-0">
+            <span class="text-sm text-gray-500">Pontuação final:</span>
+            <span class="ml-1 px-2 py-0.5 bg-green-100 text-green-800 rounded text-sm font-medium">
+              {{ rodadaSelecionada.pontuacaoFinal || '-' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Votos da rodada -->
+      <div>
+        <h4 class="font-medium text-gray-700 mb-3">Votos dos participantes</h4>
+
+        <!-- Caso não haja votos -->
+        <div
+          *ngIf="getJogadoresIds(rodadaSelecionada).length === 0"
+          class="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+          <p>Nenhum voto registrado nesta rodada.</p>
+        </div>
+
+        <!-- Grid de votos -->
+        <div
+          *ngIf="getJogadoresIds(rodadaSelecionada).length > 0"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div
+            *ngFor="let jogadorId of getJogadoresIds(rodadaSelecionada); trackBy: trackById"
+            class="bg-white p-3 rounded-lg border border-gray-200">
+            <!-- Avatar e nome -->
+            <div class="flex items-center mb-2">
+              <div
+                [style.background-color]="rodadaSelecionada.votos[jogadorId].cor"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-2">
+                {{ obterInicialNome(rodadaSelecionada.votos[jogadorId].nome) }}
+              </div>
+              <div class="font-medium text-sm truncate flex items-center">
+                {{ rodadaSelecionada.votos[jogadorId].nome }}
+                <span
+                  *ngIf="rodadaSelecionada.votos[jogadorId].nome === nomeDono"
+                  class="ml-1 inline-flex items-center align-middle"
+                  title="Criador da sala">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    class="h-4 w-4 text-amber-500 fill-current">
+                    <path d="M4 17L2 7l6 5 4-8 4 8 6-5-2 10H4zm0 2h16v2H4v-2z" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+
+            <!-- Voto -->
+            <div class="flex justify-center">
+              <div
+                class="w-12 h-16 bg-poker-light border-2 border-poker-blue rounded-md flex items-center justify-center font-bold text-xl text-poker-blue">
+                {{ rodadaSelecionada.votos[jogadorId].valor }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

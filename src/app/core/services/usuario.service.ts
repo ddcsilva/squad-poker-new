@@ -1,13 +1,17 @@
-import { Injectable, signal } from '@angular/core';
+// src/app/core/services/usuario.service.ts
+import { Injectable, inject, signal } from '@angular/core';
 import { Usuario } from '../models/usuario.model';
-
-const STORAGE_KEY = 'squad_poker_usuario';
+import { USUARIO_REPOSITORY } from '../repositories/usuario-repository.token';
+import { IUsuarioRepository } from '../repositories/usuario-repository.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UsuarioService {
-  // Estado principal como signal (público, readonly)
+  // Injeção do repositório usando o token
+  private usuarioRepository = inject<IUsuarioRepository>(USUARIO_REPOSITORY);
+
+  // Estado principal como signal (privado)
   private _usuarioAtual = signal<Usuario | null>(null);
 
   // Getter para acessar o valor (sem modificação externa)
@@ -16,18 +20,28 @@ export class UsuarioService {
   }
 
   constructor() {
-    this.carregarDoStorage();
+    this.carregarUsuario();
   }
 
   /**
-   * Define o usuário atual e salva no localStorage
+   * Define o usuário atual e salva no repositório
    */
   definirUsuario(usuario: Usuario): void {
-    // Atualiza signal
-    this._usuarioAtual.set(usuario);
+    try {
+      // Validar dados do usuário
+      if (!usuario || !usuario.id || !usuario.nome) {
+        throw new Error('Dados do usuário inválidos');
+      }
 
-    // Persiste no localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(usuario));
+      // Salvar no repositório
+      this.usuarioRepository.salvar(usuario);
+
+      // Atualizar signal
+      this._usuarioAtual.set(usuario);
+    } catch (error) {
+      console.error('Erro ao definir usuário:', error);
+      throw error;
+    }
   }
 
   /**
@@ -37,17 +51,23 @@ export class UsuarioService {
     const usuarioAtual = this._usuarioAtual();
 
     if (usuarioAtual) {
-      // Criar uma cópia atualizada do usuário
-      const usuarioAtualizado = {
-        ...usuarioAtual,
-        voto,
-      };
+      try {
+        // Criar uma cópia atualizada do usuário
+        const usuarioAtualizado = {
+          ...usuarioAtual,
+          voto,
+        };
 
-      // Atualizar o signal
-      this._usuarioAtual.set(usuarioAtualizado);
+        // Salvar no repositório
+        this.usuarioRepository.salvar(usuarioAtualizado);
 
-      // Persistir no localStorage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarioAtualizado));
+        // Atualizar o signal
+        this._usuarioAtual.set(usuarioAtualizado);
+      } catch (error) {
+        console.error('Erro ao atualizar voto do usuário:', error);
+        // Não relançamos o erro aqui para evitar quebrar o fluxo do usuário,
+        // mas registramos no console para diagnóstico
+      }
     }
   }
 
@@ -55,25 +75,42 @@ export class UsuarioService {
    * Remove o usuário atual (logout)
    */
   limparUsuario(): void {
-    this._usuarioAtual.set(null);
-    localStorage.removeItem(STORAGE_KEY);
+    try {
+      // Remover do repositório
+      this.usuarioRepository.remover();
+
+      // Limpar o signal
+      this._usuarioAtual.set(null);
+    } catch (error) {
+      console.error('Erro ao limpar usuário:', error);
+      // Garantir que o signal seja limpo mesmo se houver erro no repositório
+      this._usuarioAtual.set(null);
+    }
   }
 
   /**
-   * Carrega usuário do localStorage na inicialização (privado)
+   * Verifica se há um usuário autenticado
    */
-  private carregarDoStorage(): void {
-    try {
-      const usuarioSalvo = localStorage.getItem(STORAGE_KEY);
+  estaAutenticado(): boolean {
+    return !!this._usuarioAtual();
+  }
 
-      if (usuarioSalvo) {
-        const usuario = JSON.parse(usuarioSalvo) as Usuario;
+  /**
+   * Carrega usuário do repositório na inicialização
+   */
+  private carregarUsuario(): void {
+    try {
+      // Buscar do repositório
+      const usuario = this.usuarioRepository.buscar();
+
+      // Atualizar o signal se encontrou o usuário
+      if (usuario) {
         this._usuarioAtual.set(usuario);
       }
     } catch (error) {
-      console.error('Erro ao carregar usuário do storage:', error);
-      // Limpa storage se houver um erro de parsing
-      localStorage.removeItem(STORAGE_KEY);
+      console.error('Erro ao carregar usuário:', error);
+      // Em caso de erro, garantimos que o signal esteja limpo
+      this._usuarioAtual.set(null);
     }
   }
 }

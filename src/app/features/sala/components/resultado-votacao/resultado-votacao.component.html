@@ -1,0 +1,91 @@
+<div class="animate-fade-in" role="region" aria-label="Resultado da votação">
+  <!-- Resumo estatístico -->
+  <div class="p-4 mb-4 rounded-lg" [ngClass]="obterClasseContainerResultado()">
+    <!-- Cabeçalho do resultado -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-3">
+      <h3 class="font-medium text-gray-800">Resultado da votação</h3>
+
+      <!-- Pontuação final (editável para o dono da sala) -->
+      <div class="mt-2 md:mt-0 flex items-center">
+        <span class="text-sm mr-2">Pontuação final:</span>
+        <div *ngIf="ehModerador; else pontuacaoReadOnly" class="flex items-center">
+          <input
+            type="text"
+            [value]="pontuacaoFinal"
+            (input)="aoPontuacaoFinalMudada($event)"
+            class="w-16 px-2 py-1 text-center border rounded-md focus:ring-2 focus:ring-poker-blue focus:border-transparent"
+            aria-label="Definir pontuação final" />
+        </div>
+        <ng-template #pontuacaoReadOnly>
+          <div class="bg-white px-3 py-1 rounded-md border font-medium">
+            {{ pontuacaoFinal || '-' }}
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Resultado da votação -->
+    <div class="bg-white p-3 rounded-lg shadow-sm text-center">
+      <!-- Caso de empate -->
+      <div *ngIf="temEmpate" class="text-yellow-700">
+        <div class="font-medium">Sem consenso na votação</div>
+        <div class="text-sm mt-1">Empate entre: {{ valoresEmpatados.join(', ') }}</div>
+        <div class="text-xs mt-2 text-gray-500">Considere iniciar uma discussão ou uma nova rodada.</div>
+      </div>
+
+      <!-- Caso de consenso -->
+      <div *ngIf="!temEmpate && valorMaisVotado !== '-'" class="text-green-700">
+        <div class="font-medium">Valor mais votado: {{ valorMaisVotado }}</div>
+        <div class="text-sm mt-1">
+          {{ contagemMaisVotado }} de {{ totalVotosValidos }} votos ({{ calcularPorcentagemMaisVotado() }}%)
+        </div>
+      </div>
+
+      <!-- Caso sem votos -->
+      <div *ngIf="valorMaisVotado === '-'" class="text-gray-500">Nenhum voto registrado.</div>
+    </div>
+  </div>
+
+  <!-- Visualização dos votos -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" role="list" aria-label="Votos dos participantes">
+    <div
+      *ngFor="let jogador of jogadores; trackBy: trackById"
+      class="bg-white p-3 rounded-lg border border-gray-200 animate-fade-in"
+      role="listitem">
+      <div class="flex items-center mb-2">
+        <!-- Avatar do jogador -->
+        <div
+          [style.background-color]="jogador.cor"
+          class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-2">
+          {{ obterInicialNome(jogador.nome) }}
+        </div>
+        <div class="font-medium flex items-center">
+          {{ jogador.nome }}
+          <span
+            *ngIf="jogador.nome === nomeDono"
+            class="ml-1 inline-flex items-center align-middle"
+            title="Criador da sala"
+            aria-label="Criador da sala">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 text-amber-500 fill-current">
+              <path d="M4 17L2 7l6 5 4-8 4 8 6-5-2 10H4zm0 2h16v2H4v-2z" />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <!-- Voto revelado -->
+      <div class="flex justify-center">
+        <div
+          *ngIf="jogador.voto"
+          class="w-12 h-16 bg-poker-light border-2 border-poker-blue rounded-md flex items-center justify-center font-bold text-xl text-poker-blue"
+          [ngClass]="obterClasseCartaVotada(jogador)">
+          {{ jogador.voto }}
+        </div>
+        <div
+          *ngIf="!jogador.voto"
+          class="w-12 h-16 bg-gray-50 border-2 border-gray-200 rounded-md flex items-center justify-center text-gray-400">
+          -
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
