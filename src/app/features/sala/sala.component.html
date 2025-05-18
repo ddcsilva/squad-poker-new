@@ -56,8 +56,26 @@
           </div>
         </div>
 
-        <!-- Status e botão sair -->
+        <!-- Status, usuário atual e botão sair -->
         <div class="flex items-center gap-2 mt-2 sm:mt-0 ml-auto sm:ml-0">
+          <!-- Usuário atual -->
+          <div class="flex items-center mr-2" *ngIf="usuarioService.usuarioAtual()">
+            <div
+              [style.background-color]="usuarioService.usuarioAtual()!.cor"
+              class="w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs">
+              {{ usuarioService.usuarioAtual()!.nome.charAt(0).toUpperCase() }}
+            </div>
+            <span class="ml-1 text-sm font-medium hidden sm:inline">{{ usuarioService.usuarioAtual()!.nome }}</span>
+            <span
+              class="ml-1 text-xs px-1.5 py-0.5 rounded"
+              [class.bg-blue-100]="usuarioService.usuarioAtual()!.tipo === 'espectador'"
+              [class.text-blue-800]="usuarioService.usuarioAtual()!.tipo === 'espectador'"
+              [class.bg-indigo-100]="usuarioService.usuarioAtual()!.tipo === 'participante'"
+              [class.text-indigo-800]="usuarioService.usuarioAtual()!.tipo === 'participante'">
+              {{ usuarioService.usuarioAtual()!.tipo === 'participante' ? '🎮' : '👁️' }}
+            </span>
+          </div>
+
           <!-- Status (visível apenas em desktop) -->
           <span
             class="text-sm hidden sm:inline"
@@ -237,19 +255,21 @@
             <!-- Controles de moderador (apenas para dono) -->
             <div *ngIf="ehDonoDaSala()" class="border-t pt-4 mt-4">
               <h3 class="font-medium text-gray-700 mb-2">Controles de Moderador</h3>
-              <button
-                (click)="revelarVotos()"
-                class="px-3 py-2 bg-poker-blue text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
-                [disabled]="obterParticipantesQueVotaram() === 0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                  <path
-                    fill-rule="evenodd"
-                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                    clip-rule="evenodd" />
-                </svg>
-                Revelar Votos
-              </button>
+              <div class="flex flex-col sm:flex-row gap-2 w-full">
+                <button
+                  (click)="revelarVotos()"
+                  class="px-3 py-2 bg-poker-blue text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+                  [disabled]="obterParticipantesQueVotaram() === 0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  Revelar Votos
+                </button>
+              </div>
             </div>
           </div>
 
@@ -344,72 +364,56 @@
             <!-- Controles de moderador -->
             <div *ngIf="ehDonoDaSala()" class="mt-6 pt-4 border-t">
               <h3 class="font-medium text-gray-700 mb-2">Controles de Moderador</h3>
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-col sm:flex-row gap-2 w-full">
                 <button
-                  class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center justify-center whitespace-nowrap"
                   (click)="ocultarVotos()">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
                   Reiniciar Votação
                 </button>
-                <!-- Expandir para mostrar formulário da Nova Rodada -->
-                <div class="flex-1">
-                  <div class="flex flex-col space-y-2">
-                    <div class="flex gap-2">
-                      <input
-                        type="text"
-                        [value]="descricaoNovaRodada()"
-                        (input)="atualizarDescricaoNovaRodada($event)"
-                        placeholder="Descrição da próxima rodada..."
-                        class="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-poker-blue focus:border-transparent" />
-                      <button
-                        (click)="iniciarNovaRodada()"
-                        [disabled]="!descricaoNovaRodada() || criandoNovaRodada()"
-                        class="px-3 py-2 rounded-md transition-colors flex items-center whitespace-nowrap"
-                        [class.bg-poker-blue]="!verificarEmpate().temEmpate && !criandoNovaRodada()"
-                        [class.text-white]="!verificarEmpate().temEmpate && !criandoNovaRodada()"
-                        [class.bg-yellow-500]="verificarEmpate().temEmpate && !criandoNovaRodada()"
-                        [class.text-white]="verificarEmpate().temEmpate && !criandoNovaRodada()"
-                        [class.bg-gray-300]="criandoNovaRodada()"
-                        [class.opacity-70]="criandoNovaRodada()">
-                        <svg
-                          *ngIf="!criandoNovaRodada()"
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="h-5 w-5 mr-1"
-                          viewBox="0 0 20 20"
-                          fill="currentColor">
-                          <path
-                            fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                            clip-rule="evenodd" />
-                        </svg>
-                        <svg
-                          *ngIf="criandoNovaRodada()"
-                          class="animate-spin h-5 w-5 mr-1"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24">
-                          <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"></circle>
-                          <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        {{ criandoNovaRodada() ? 'Processando...' : 'Iniciar Nova Rodada' }}
-                      </button>
-                    </div>
-                    <!-- Texto de ajuda -->
-                    <p class="text-xs text-gray-500">
-                      Iniciar uma nova rodada salva os resultados atuais no histórico e limpa os votos para a próxima
-                      votação.
-                    </p>
-                  </div>
-                </div>
+                <input
+                  type="text"
+                  [value]="descricaoNovaRodada()"
+                  (input)="atualizarDescricaoNovaRodada($event)"
+                  placeholder="Descrição da próxima rodada..."
+                  class="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-poker-blue focus:border-transparent" />
+                <button
+                  (click)="iniciarNovaRodada()"
+                  [disabled]="!descricaoNovaRodada() || criandoNovaRodada()"
+                  class="px-3 py-2 rounded-md transition-colors flex items-center justify-center whitespace-nowrap text-white bg-poker-blue hover:bg-blue-700"
+                  [class.bg-poker-blue]="!verificarEmpate().temEmpate && !criandoNovaRodada()"
+                  [class.bg-yellow-500]="verificarEmpate().temEmpate && !criandoNovaRodada()"
+                  [class.bg-gray-300]="criandoNovaRodada()"
+                  [class.opacity-70]="criandoNovaRodada()">
+                  <svg
+                    *ngIf="!criandoNovaRodada()"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 mr-1"
+                    viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  {{ criandoNovaRodada() ? 'Processando...' : 'Nova Rodada' }}
+                </button>
               </div>
+              <!-- Texto de ajuda -->
+              <p class="text-xs text-gray-500 mt-2">
+                Iniciar uma nova rodada salva os resultados atuais no histórico e limpa os votos para a próxima votação.
+              </p>
             </div>
           </div>
         </div>
