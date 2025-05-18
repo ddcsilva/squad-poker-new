@@ -384,4 +384,17 @@ export class SalaComponent implements OnInit, OnDestroy {
     this.modalRemoverParticipanteVisivel.set(false);
     this.participanteParaRemover.set(null);
   }
+
+  async encerrarSala(): Promise<void> {
+    if (!this.ehDonoDaSala() || !this.sala) {
+      return;
+    }
+
+    try {
+      // Passar o valor da pontuação final para o método
+      await this.salaService.encerrarSala(this.sala.id, this.pontuacaoFinal());
+    } catch (error) {
+      console.error('Erro ao encerrar sala:', error);
+    }
+  }
 }

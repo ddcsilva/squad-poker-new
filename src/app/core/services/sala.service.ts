@@ -231,7 +231,7 @@ export class SalaService {
   /**
    * Encerra uma sala permanentemente
    */
-  async encerrarSala(salaId: string): Promise<void> {
+  async encerrarSala(salaId: string, pontuacaoFinal?: string): Promise<void> {
     this.validarCamposObrigatorios({ salaId });
 
     // Obter e validar a sala
@@ -242,6 +242,15 @@ export class SalaService {
       return; // Já está encerrada, não faz nada
     }
 
+    // Salvar a rodada atual no histórico se os votos estiverem revelados
+    if (sala.votosRevelados) {
+      // Usar a pontuação passada como parâmetro OU calcular automaticamente
+      const valorFinal = pontuacaoFinal || this.calcularMaisVotado(sala.jogadores);
+      const rodadaAtual = this.criarHistoricoRodada(sala, valorFinal);
+      sala.historicoRodadas.push(rodadaAtual);
+    }
+
+    // Encerrar a sala
     sala.status = 'encerrada';
     await this.salaRepository.salvar(sala);
   }

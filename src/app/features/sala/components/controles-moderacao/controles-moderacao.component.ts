@@ -20,6 +20,7 @@ export class ControlesModeracaoComponent {
   @Output() reiniciarVotacao = new EventEmitter<void>();
   @Output() descricaoMudou = new EventEmitter<string>();
   @Output() criarNovaRodada = new EventEmitter<void>();
+  @Output() encerrarSala = new EventEmitter<void>(); // Nova emissão de evento
 
   modalNovaRodadaAberto = false;
 
@@ -29,6 +30,10 @@ export class ControlesModeracaoComponent {
 
   aoReiniciarVotacao(): void {
     this.reiniciarVotacao.emit();
+  }
+
+  aoEncerrarSala(): void {
+    this.encerrarSala.emit();
   }
 
   atualizarDescricao(event: Event): void {
@@ -79,6 +84,12 @@ export class ControlesModeracaoComponent {
   get iconeNovaRodada(): string {
     return `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
       <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+    </svg>`;
+  }
+
+  get iconeEncerrarSala(): string {
+    return `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
     </svg>`;
   }
 }
