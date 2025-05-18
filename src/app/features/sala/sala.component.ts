@@ -12,6 +12,7 @@ import { ControlesModeracaoComponent } from './components/controles-moderacao/co
 import { HistoricoComponent } from './components/historico/historico.component';
 import { CabecalhoSalaComponent } from './components/cabecalho-sala/cabecalho-sala.component';
 import { StatusVotacaoComponent } from './components/status-votacao/status-votacao.component';
+import { SalaEncerradaComponent } from './components/sala-encerrada/sala-encerrada.component';
 
 @Component({
   selector: 'app-sala',
@@ -25,6 +26,7 @@ import { StatusVotacaoComponent } from './components/status-votacao/status-votac
     HistoricoComponent,
     CabecalhoSalaComponent,
     StatusVotacaoComponent,
+    SalaEncerradaComponent,
   ],
   templateUrl: './sala.component.html',
 })
