@@ -11,7 +11,7 @@
     <div
       [style.background-color]="jogador.cor"
       class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3">
-      {{ jogador.nome.charAt(0).toUpperCase() }}
+      {{ obterInicialNome(jogador.nome) }}
     </div>
 
     <!-- Nome e status -->
@@ -28,20 +28,20 @@
         </span>
       </div>
       <div class="text-xs" [class.text-green-600]="jogador.voto !== null" [class.text-gray-400]="jogador.voto === null">
-        {{ getStatusTexto(jogador) }}
+        {{ obterStatusTexto(jogador) }}
       </div>
     </div>
 
     <!-- Tipo de jogador -->
     <div class="text-xs bg-gray-100 px-2 py-1 rounded">
-      {{ getTipoTexto(jogador) }}
+      {{ obterTipoTexto(jogador) }}
     </div>
 
     <!-- Botão remover (visível apenas quando permitido e não é o dono) -->
     <button
       *ngIf="podeRemoverJogador(jogador)"
       class="ml-2 text-red-500 hover:text-red-700 p-1"
-      (click)="onRemoverJogador(jogador.id)"
+      (click)="aoRemoverJogador(jogador.id)"
       title="Remover participante">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
         <path

@@ -29,20 +29,23 @@ export class JogadoresListaComponent {
     return jogador.id;
   }
 
+  obterInicialNome(nome: string): string {
+    return nome.charAt(0).toUpperCase();
+  }
+
   podeRemoverJogador(jogador: Usuario): boolean {
     return this.permissaoRemover && jogador.nome !== this.nomeDono;
   }
 
-  getStatusTexto(jogador: Usuario): string {
+  obterStatusTexto(jogador: Usuario): string {
     return jogador.voto !== null ? 'Votou' : 'Não votou';
   }
 
-  getTipoTexto(jogador: Usuario): string {
+  obterTipoTexto(jogador: Usuario): string {
     return jogador.tipo === 'participante' ? '🎮 Jogador' : '👁️ Espectador';
   }
 
-  onRemoverJogador(jogadorId: string): void {
-    // Confirmação para evitar cliques acidentais
+  aoRemoverJogador(jogadorId: string): void {
     if (confirm('Tem certeza que deseja remover este participante?')) {
       this.removerJogador.emit(jogadorId);
     }
