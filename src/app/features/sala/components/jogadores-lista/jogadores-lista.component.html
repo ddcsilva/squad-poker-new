@@ -18,16 +18,13 @@
     <div class="flex-1">
       <div class="font-medium flex items-center">
         {{ jogador.nome }}
-        <span
-          *ngIf="jogador.nome === nomeDono"
-          class="ml-1 inline-flex items-center align-middle"
-          title="Criador da sala">
+        <span *ngIf="ehDonoDaSala(jogador)" class="ml-1 inline-flex items-center align-middle" title="Criador da sala">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 text-amber-500 fill-current">
             <path d="M4 17L2 7l6 5 4-8 4 8 6-5-2 10H4zm0 2h16v2H4v-2z" />
           </svg>
         </span>
       </div>
-      <div class="text-xs" [class.text-green-600]="jogador.voto !== null" [class.text-gray-400]="jogador.voto === null">
+      <div class="text-xs" [ngClass]="obterClasseStatus(jogador)">
         {{ obterStatusTexto(jogador) }}
       </div>
     </div>

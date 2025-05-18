@@ -33,6 +33,14 @@ export class JogadoresListaComponent {
     return nome.charAt(0).toUpperCase();
   }
 
+  ehDonoDaSala(jogador: Usuario): boolean {
+    return jogador.nome === this.nomeDono;
+  }
+
+  obterClasseStatus(jogador: Usuario): string {
+    return jogador.voto !== null ? 'text-green-600' : 'text-gray-400';
+  }
+
   podeRemoverJogador(jogador: Usuario): boolean {
     return this.permissaoRemover && jogador.nome !== this.nomeDono;
   }
