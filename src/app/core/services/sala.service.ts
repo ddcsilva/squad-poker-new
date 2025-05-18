@@ -1,22 +1,24 @@
+// src/app/core/services/sala.service.ts
 import { Injectable, inject, signal } from '@angular/core';
-import { FirebaseService } from './firebase.service';
-import { Sala } from '../models/sala.model';
+import { Sala, HistoricoRodada } from '../models/sala.model';
 import { Usuario } from '../models/usuario.model';
-import { v4 as uuidv4 } from 'uuid';
 import { Observable, tap } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
+import { SALA_REPOSITORY } from '../repositories/sala-repository.token';
+import { ISalaRepository } from '../repositories/sala-repository.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SalaService {
-  // Injeção de dependências
-  private firebaseService = inject(FirebaseService);
+  // Injeção do repositório usando o token
+  private salaRepository = inject<ISalaRepository>(SALA_REPOSITORY);
 
   // Signal para a sala atual
   salaAtual = signal<Sala | null>(null);
 
   /**
-   * Cria uma nova sala no Firestore
+   * Cria uma nova sala no repositório
    */
   async criarSala(nomeDono: string, descricao: string, tipoUsuario: 'participante' | 'espectador'): Promise<Sala> {
     // 1. Criar o objeto do usuário dono
@@ -41,8 +43,8 @@ export class SalaService {
       criadaEm: new Date(),
     };
 
-    // 3. Salvar no Firestore
-    await this.firebaseService.salvarSala(novaSala);
+    // 3. Salvar usando o repositório
+    await this.salaRepository.salvar(novaSala);
 
     // 4. Atualizar o signal
     this.salaAtual.set(novaSala);
@@ -59,8 +61,8 @@ export class SalaService {
     nomeUsuario: string,
     tipoUsuario: 'participante' | 'espectador'
   ): Promise<Sala> {
-    // 1. Buscar a sala pelo código
-    const sala = await this.firebaseService.buscarSala(codigoSala);
+    // 1. Buscar a sala pelo código usando o repositório
+    const sala = await this.salaRepository.buscarPorId(codigoSala);
 
     // 2. Verificar se a sala existe
     if (!sala) {
@@ -84,8 +86,8 @@ export class SalaService {
     // 5. Adicionar à lista de jogadores
     sala.jogadores.push(novoUsuario);
 
-    // 6. Salvar a sala atualizada
-    await this.firebaseService.salvarSala(sala);
+    // 6. Salvar a sala atualizada no repositório
+    await this.salaRepository.salvar(sala);
 
     // 7. Atualizar o signal
     this.salaAtual.set(sala);
@@ -97,7 +99,7 @@ export class SalaService {
    * Observa mudanças em uma sala em tempo real
    */
   observarSala(id: string): Observable<Sala> {
-    return this.firebaseService.observarSala(id).pipe(
+    return this.salaRepository.observar(id).pipe(
       tap((sala: Sala) => {
         // Atualiza o signal sempre que houver mudanças
         this.salaAtual.set(sala);
@@ -126,12 +128,15 @@ export class SalaService {
     // 3. Registrar o voto
     jogador.voto = voto;
 
-    // 4. Salvar no Firebase
-    await this.firebaseService.salvarSala(sala);
+    // 4. Salvar no repositório
+    await this.salaRepository.salvar(sala);
 
     // 5. O signal já está atualizado, pois modificamos o mesmo objeto
   }
 
+  /**
+   * Revela os votos da rodada atual
+   */
   async revelarVotos(salaId: string): Promise<void> {
     // 1. Obter sala atual
     const sala = this.salaAtual();
@@ -143,10 +148,13 @@ export class SalaService {
     // 2. Atualizar estado
     sala.votosRevelados = true;
 
-    // 3. Salvar no Firebase
-    await this.firebaseService.salvarSala(sala);
+    // 3. Salvar no repositório
+    await this.salaRepository.salvar(sala);
   }
 
+  /**
+   * Oculta os votos e reinicia a votação da rodada atual
+   */
   async ocultarVotos(salaId: string): Promise<void> {
     const sala = this.salaAtual();
 
@@ -162,7 +170,7 @@ export class SalaService {
       jogador.voto = null;
     });
 
-    await this.firebaseService.salvarSala(sala);
+    await this.salaRepository.salvar(sala);
   }
 
   /**
@@ -177,17 +185,11 @@ export class SalaService {
 
     // 1. Salvar a rodada atual no histórico
     if (sala.votosRevelados) {
-      const rodadaAtual = {
+      const rodadaAtual: HistoricoRodada = {
         numero: sala.rodadaAtual,
         descricao: sala.descricaoVotacao,
         pontuacaoFinal: pontuacaoFinal || this.calcularMaisVotado(sala.jogadores),
-        votos: {} as {
-          [jogadorId: string]: {
-            valor: string;
-            nome: string;
-            cor: string;
-          };
-        },
+        votos: {},
         timestamp: new Date(),
       };
 
@@ -216,8 +218,27 @@ export class SalaService {
       jogador.voto = null;
     });
 
-    // 4. Salvar no Firebase
-    await this.firebaseService.salvarSala(sala);
+    // 4. Salvar no repositório
+    await this.salaRepository.salvar(sala);
+  }
+
+  /**
+   * Encerra uma sala permanentemente
+   */
+  async encerrarSala(salaId: string): Promise<void> {
+    const sala = this.salaAtual();
+    if (!sala) throw new Error('Sala não encontrada');
+
+    sala.status = 'encerrada';
+    await this.salaRepository.salvar(sala);
+  }
+
+  /**
+   * Remove um jogador da sala e salva as alterações
+   */
+  async removerJogadorESalvar(sala: Sala, jogadorId: string): Promise<void> {
+    sala.jogadores = sala.jogadores.filter(j => j.id !== jogadorId);
+    await this.salaRepository.salvar(sala);
   }
 
   /**
@@ -252,17 +273,5 @@ export class SalaService {
   private gerarCorAleatoria(): string {
     const cores = ['#E57373', '#64B5F6', '#81C784', '#FFD54F', '#BA68C8', '#9575CD', '#4DB6AC', '#FF8A65'];
     return cores[Math.floor(Math.random() * cores.length)];
-  }
-
-  async encerrarSala(salaId: string): Promise<void> {
-    const sala = this.salaAtual();
-    if (!sala) throw new Error('Sala não encontrada');
-    sala.status = 'encerrada';
-    await this.firebaseService.salvarSala(sala);
-  }
-
-  async removerJogadorESalvar(sala: Sala, jogadorId: string): Promise<void> {
-    sala.jogadores = sala.jogadores.filter(j => j.id !== jogadorId);
-    await this.firebaseService.salvarSala(sala);
   }
 }

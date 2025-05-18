@@ -6,6 +6,8 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
+import { SALA_REPOSITORY } from './core/repositories/sala-repository.token';
+import { FirestoreSalaRepository } from './core/repositories/firestore-sala.repository';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,5 +16,6 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => getFirestore()),
     provideAnimations(),
+    { provide: SALA_REPOSITORY, useClass: FirestoreSalaRepository },
   ],
 };
