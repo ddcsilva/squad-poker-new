@@ -74,15 +74,15 @@
               [class.text-indigo-800]="usuarioService.usuarioAtual()!.tipo === 'participante'">
               {{ usuarioService.usuarioAtual()!.tipo === 'participante' ? '🎮' : '👁️' }}
             </span>
-          </div>
+      </div>
 
           <!-- Status (visível apenas em desktop) -->
-          <span
+        <span
             class="text-sm hidden sm:inline"
-            [class.text-green-600]="sala?.status === 'aguardando'"
-            [class.text-red-600]="sala?.status === 'encerrada'">
-            {{ sala?.status === 'aguardando' ? '🟢 Ativa' : '🔴 Encerrada' }}
-          </span>
+          [class.text-green-600]="sala?.status === 'aguardando'"
+          [class.text-red-600]="sala?.status === 'encerrada'">
+          {{ sala?.status === 'aguardando' ? '🟢 Ativa' : '🔴 Encerrada' }}
+        </span>
           <button
             class="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
             (click)="sairDaSala()">
@@ -143,72 +143,72 @@
       <!-- Conteúdo da votação atual (esconder quando estiver no histórico) -->
       <div *ngIf="!mostrandoHistorico()" class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Lista de participantes (coluna esquerda) -->
-        <div class="bg-gray-50 rounded-lg p-4 col-span-1">
-          <h2 class="text-lg font-bold text-gray-700 mb-4">Participantes</h2>
+      <div class="bg-gray-50 rounded-lg p-4 col-span-1">
+        <h2 class="text-lg font-bold text-gray-700 mb-4">Participantes</h2>
 
           <div *ngIf="sala.jogadores.length === 0" class="text-center p-4 text-gray-500">
             Nenhum participante na sala
           </div>
 
-          <div *ngFor="let jogador of sala.jogadores" class="bg-white rounded-md p-3 mb-2 flex items-center">
-            <!-- Avatar com primeira letra e cor -->
+        <div *ngFor="let jogador of sala.jogadores" class="bg-white rounded-md p-3 mb-2 flex items-center">
+          <!-- Avatar com primeira letra e cor -->
+          <div
+            [style.background-color]="jogador.cor"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3">
+            {{ jogador.nome.charAt(0).toUpperCase() }}
+          </div>
+
+          <!-- Nome e status -->
+          <div class="flex-1">
+            <div class="font-medium">
+              {{ jogador.nome }}
+              <span *ngIf="jogador.nome === sala.nomeDono" class="text-xs ml-1">👑</span>
+            </div>
             <div
-              [style.background-color]="jogador.cor"
-              class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3">
-              {{ jogador.nome.charAt(0).toUpperCase() }}
-            </div>
-
-            <!-- Nome e status -->
-            <div class="flex-1">
-              <div class="font-medium">
-                {{ jogador.nome }}
-                <span *ngIf="jogador.nome === sala.nomeDono" class="text-xs ml-1">👑</span>
-              </div>
-              <div
-                class="text-xs"
-                [class.text-green-600]="jogador.voto !== null"
-                [class.text-gray-400]="jogador.voto === null">
-                {{ jogador.voto !== null ? 'Votou' : 'Não votou' }}
-              </div>
-            </div>
-
-            <!-- Tipo de jogador -->
-            <div class="text-xs bg-gray-100 px-2 py-1 rounded">
-              {{ jogador.tipo === 'participante' ? '🎮 Jogador' : '👁️ Espectador' }}
+              class="text-xs"
+              [class.text-green-600]="jogador.voto !== null"
+              [class.text-gray-400]="jogador.voto === null">
+              {{ jogador.voto !== null ? 'Votou' : 'Não votou' }}
             </div>
           </div>
+
+          <!-- Tipo de jogador -->
+          <div class="text-xs bg-gray-100 px-2 py-1 rounded">
+            {{ jogador.tipo === 'participante' ? '🎮 Jogador' : '👁️ Espectador' }}
+          </div>
         </div>
+      </div>
 
         <!-- Área de votação (coluna do meio e direita) -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4 col-span-1 md:col-span-2">
+      <div class="bg-white rounded-lg border border-gray-200 p-4 col-span-1 md:col-span-2">
           <ng-container *ngIf="sala.status !== 'encerrada'; else salaEncerrada">
             <!-- Status da votação - Área fixa para mobile -->
             <div class="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-poker-blue shadow-sm">
               <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                 <div class="text-sm font-medium text-gray-700 mb-1 sm:mb-0">Rodada {{ sala.rodadaAtual }}</div>
 
-                <div class="text-sm" *ngIf="usuarioService.usuarioAtual()">
+          <div class="text-sm" *ngIf="usuarioService.usuarioAtual()">
                   <!-- Participante que já votou -->
-                  <span
+            <span
                     *ngIf="
                       !sala.votosRevelados &&
                       usuarioService.usuarioAtual()?.tipo === 'participante' &&
                       usuarioService.usuarioAtual()?.voto
                     "
                     class="bg-green-100 text-green-800 px-2 py-1 rounded font-medium">
-                    Você votou: {{ usuarioService.usuarioAtual()?.voto }}
-                  </span>
+              Você votou: {{ usuarioService.usuarioAtual()?.voto }}
+            </span>
 
                   <!-- Participante que ainda não votou -->
-                  <span
+            <span
                     *ngIf="
                       !sala.votosRevelados &&
                       usuarioService.usuarioAtual()?.tipo === 'participante' &&
                       !usuarioService.usuarioAtual()?.voto
                     "
                     class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-medium">
-                    Aguardando seu voto...
-                  </span>
+              Aguardando seu voto...
+            </span>
 
                   <!-- Espectador -->
                   <span
@@ -217,24 +217,24 @@
                     Modo espectador
                   </span>
                 </div>
-              </div>
-            </div>
+          </div>
+        </div>
 
             <!-- ÁREA DE VOTAÇÃO (quando votos não revelados) -->
             <div *ngIf="!sala.votosRevelados">
               <!-- Cartões de votação (apenas para participantes) -->
               <div *ngIf="usuarioService.usuarioAtual()?.tipo === 'participante'" class="mb-6">
                 <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9 gap-3 justify-items-center">
-                  <app-cartao-poker
-                    *ngFor="let carta of cartasPoker"
-                    [valor]="carta"
+            <app-cartao-poker
+              *ngFor="let carta of cartasPoker"
+              [valor]="carta"
                     [selecionado]="usuarioService.usuarioAtual()?.voto === carta || cartaSelecionada() === carta"
-                    (selecionar)="votar($event)"></app-cartao-poker>
-                </div>
-              </div>
+              (selecionar)="votar($event)"></app-cartao-poker>
+          </div>
+        </div>
 
-              <!-- Mensagem para espectadores -->
-              <div
+        <!-- Mensagem para espectadores -->
+        <div
                 *ngIf="usuarioService.usuarioAtual()?.tipo === 'espectador'"
                 class="bg-blue-50 border border-blue-100 p-4 rounded-lg text-center mb-6">
                 <p class="text-blue-800">👁️ Você está no modo espectador</p>
@@ -467,7 +467,7 @@
             <p class="text-sm text-gray-700 mb-2 line-clamp-1">{{ rodada.descricao }}</p>
 
             <!-- Pontuação final -->
-            <div class="flex items-center space-x-1">
+          <div class="flex items-center space-x-1">
               <span class="text-xs text-gray-500">Pontuação:</span>
               <span class="px-2 py-0.5 bg-green-100 text-green-800 rounded text-sm font-medium">{{
                 rodada.pontuacaoFinal || '-'
@@ -568,8 +568,8 @@
                   </div>
                   <div class="font-medium text-sm truncate">
                     {{ rodadaSelecionada()!.votos[jogadorId].nome }}
-                  </div>
-                </div>
+          </div>
+        </div>
 
                 <!-- Voto -->
                 <div class="flex justify-center">
