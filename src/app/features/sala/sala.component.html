@@ -321,17 +321,65 @@
                 (click)="ocultarVotos()">
                 Reiniciar Votação
               </button>
-              <!-- Botão Nova Rodada com destaque em caso de empate -->
-              <button
-                class="px-3 py-2 rounded-md transition-colors flex items-center"
-                [class.bg-poker-blue]="!verificarEmpate().temEmpate"
-                [class.text-white]="!verificarEmpate().temEmpate"
-                [class.bg-yellow-500]="verificarEmpate().temEmpate"
-                [class.text-white]="verificarEmpate().temEmpate"
-                [class.hover:bg-blue-700]="!verificarEmpate().temEmpate"
-                [class.hover:bg-yellow-600]="verificarEmpate().temEmpate">
-                Nova Rodada
-              </button>
+              <!-- Expandir para mostrar formulário da Nova Rodada -->
+              <div class="flex-1">
+                <div class="flex flex-col space-y-2">
+                  <div class="flex gap-2">
+                    <input
+                      type="text"
+                      [value]="descricaoNovaRodada()"
+                      (input)="atualizarDescricaoNovaRodada($event)"
+                      placeholder="Descrição da próxima rodada..."
+                      class="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-poker-blue focus:border-transparent" />
+                    <button
+                      (click)="iniciarNovaRodada()"
+                      [disabled]="!descricaoNovaRodada() || criandoNovaRodada()"
+                      class="px-3 py-2 rounded-md transition-colors flex items-center whitespace-nowrap"
+                      [class.bg-poker-blue]="!verificarEmpate().temEmpate && !criandoNovaRodada()"
+                      [class.text-white]="!verificarEmpate().temEmpate && !criandoNovaRodada()"
+                      [class.bg-yellow-500]="verificarEmpate().temEmpate && !criandoNovaRodada()"
+                      [class.text-white]="verificarEmpate().temEmpate && !criandoNovaRodada()"
+                      [class.bg-gray-300]="criandoNovaRodada()"
+                      [class.opacity-70]="criandoNovaRodada()">
+                      <svg
+                        *ngIf="!criandoNovaRodada()"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor">
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                          clip-rule="evenodd" />
+                      </svg>
+                      <svg
+                        *ngIf="criandoNovaRodada()"
+                        class="animate-spin h-5 w-5 mr-1"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24">
+                        <circle
+                          class="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          stroke-width="4"></circle>
+                        <path
+                          class="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {{ criandoNovaRodada() ? 'Processando...' : 'Iniciar Nova Rodada' }}
+                    </button>
+                  </div>
+                  <!-- Texto de ajuda -->
+                  <p class="text-xs text-gray-500">
+                    Iniciar uma nova rodada salva os resultados atuais no histórico e limpa os votos para a próxima
+                    votação.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

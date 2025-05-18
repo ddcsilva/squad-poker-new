@@ -15,7 +15,13 @@ export interface Sala {
 export interface HistoricoRodada {
   numero: number;
   descricao: string;
-  votos: { [jogadorId: string]: string };
-  resultado?: string;
+  pontuacaoFinal: string;
+  votos: {
+    [jogadorId: string]: {
+      valor: string;
+      nome: string;
+      cor: string;
+    };
+  };
   timestamp: Date;
 }

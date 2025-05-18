@@ -154,9 +154,96 @@ export class SalaService {
       throw new Error('Sala não encontrada');
     }
 
+    // Ocultar votos
     sala.votosRevelados = false;
 
+    // Limpar votos de todos os jogadores
+    sala.jogadores.forEach(jogador => {
+      jogador.voto = null;
+    });
+
     await this.firebaseService.salvarSala(sala);
+  }
+
+  /**
+   * Inicia uma nova rodada de votação
+   */
+  async iniciarNovaRodada(salaId: string, descricaoNova: string, pontuacaoFinal: string): Promise<void> {
+    const sala = this.salaAtual();
+
+    if (!sala) {
+      throw new Error('Sala não encontrada');
+    }
+
+    // 1. Salvar a rodada atual no histórico
+    if (sala.votosRevelados) {
+      const rodadaAtual = {
+        numero: sala.rodadaAtual,
+        descricao: sala.descricaoVotacao,
+        pontuacaoFinal: pontuacaoFinal || this.calcularMaisVotado(sala.jogadores),
+        votos: {} as {
+          [jogadorId: string]: {
+            valor: string;
+            nome: string;
+            cor: string;
+          };
+        },
+        timestamp: new Date(),
+      };
+
+      // Capturar todos os votos da rodada atual
+      sala.jogadores.forEach(jogador => {
+        if (jogador.voto !== null) {
+          rodadaAtual.votos[jogador.id] = {
+            valor: jogador.voto,
+            nome: jogador.nome,
+            cor: jogador.cor,
+          };
+        }
+      });
+
+      // Adicionar ao histórico
+      sala.historicoRodadas.push(rodadaAtual);
+    }
+
+    // 2. Atualizar rodada e limpar votos
+    sala.rodadaAtual++;
+    sala.descricaoVotacao = descricaoNova;
+    sala.votosRevelados = false;
+
+    // 3. Limpar votos de todos os jogadores
+    sala.jogadores.forEach(jogador => {
+      jogador.voto = null;
+    });
+
+    // 4. Salvar no Firebase
+    await this.firebaseService.salvarSala(sala);
+  }
+
+  /**
+   * Calcula o valor mais votado entre os jogadores
+   */
+  private calcularMaisVotado(jogadores: Usuario[]): string {
+    const votos = jogadores.filter(j => j.voto !== null).map(j => j.voto!);
+
+    if (votos.length === 0) return '-';
+
+    const contagem: Record<string, number> = {};
+    votos.forEach(voto => {
+      contagem[voto] = (contagem[voto] || 0) + 1;
+    });
+
+    let maisVotado = votos[0];
+    let maiorContagem = contagem[maisVotado];
+
+    Object.entries(contagem).forEach(([voto, count]) => {
+      if (count > maiorContagem) {
+        maisVotado = voto;
+        maiorContagem = count;
+      }
+    });
+
+    return maisVotado;
   }
 
   /**

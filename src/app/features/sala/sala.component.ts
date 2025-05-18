@@ -31,6 +31,9 @@ export class SalaComponent implements OnInit, OnDestroy {
   cartasPoker = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
   cartaSelecionada = signal<string | null>(null);
   pontuacaoFinal = signal<string>('');
+  // Novo state para formulário
+  descricaoNovaRodada = signal<string>('');
+  criandoNovaRodada = signal<boolean>(false);
 
   private salaSubscription?: Subscription;
 
@@ -164,6 +167,33 @@ export class SalaComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Erro ao ocultar votos:', error);
     }
+  }
+
+  // Método para iniciar nova rodada
+  async iniciarNovaRodada(): Promise<void> {
+    if (!this.ehDonoDaSala() || !this.descricaoNovaRodada()) {
+      return;
+    }
+
+    try {
+      this.criandoNovaRodada.set(true);
+
+      await this.salaService.iniciarNovaRodada(this.salaId, this.descricaoNovaRodada(), this.pontuacaoFinal());
+
+      // Limpar formulário após sucesso
+      this.descricaoNovaRodada.set('');
+      this.pontuacaoFinal.set('');
+    } catch (error) {
+      console.error('Erro ao iniciar nova rodada:', error);
+    } finally {
+      this.criandoNovaRodada.set(false);
+    }
+  }
+
+  // Método auxiliar para atualizar descrição
+  atualizarDescricaoNovaRodada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.descricaoNovaRodada.set(input.value);
   }
 
   // Atualiza a pontuação definida pelo dono da sala
