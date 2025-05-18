@@ -1,21 +1,29 @@
 <div class="mb-6">
   <!-- Área de votação para participantes -->
-  <div *ngIf="tipoUsuario === 'participante'">
+  <div *ngIf="ehParticipante()" [@fadeInOut]>
     <h3 class="text-base font-medium text-gray-700 mb-3">Escolha seu voto:</h3>
 
-    <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9 gap-3 justify-items-center">
+    <div
+      class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-9 gap-3 justify-items-center"
+      role="group"
+      aria-label="Opções de votação">
       <app-cartao-poker
         *ngFor="let carta of cartasDisponiveis; trackBy: trackByCarta"
         [valor]="carta"
         [selecionado]="carta === valorSelecionado"
         [desabilitado]="votacaoEncerrada"
-        (selecionar)="aoSelecionarCarta($event)">
+        (selecionar)="aoSelecionarCarta($event)"
+        class="animate-fade-in">
       </app-cartao-poker>
     </div>
   </div>
 
   <!-- Mensagem para espectadores -->
-  <div *ngIf="tipoUsuario === 'espectador'" class="bg-blue-50 border border-blue-100 p-4 rounded-lg text-center">
+  <div
+    *ngIf="!ehParticipante()"
+    class="bg-blue-50 border border-blue-100 p-4 rounded-lg text-center"
+    [@fadeInOut]
+    role="status">
     <p class="text-blue-800">👁️ Você está no modo espectador</p>
     <p class="text-sm text-blue-600 mt-2">Acompanhe enquanto os participantes votam</p>
   </div>
@@ -27,10 +35,20 @@
       <span>{{ participantesQueVotaram }} de {{ totalParticipantes }}</span>
     </div>
 
-    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+    <div
+      class="w-full bg-gray-200 rounded-full h-2.5 mb-4"
+      role="progressbar"
+      [attr.aria-valuenow]="calcularPorcentagemVotacao()"
+      aria-valuemin="0"
+      aria-valuemax="100">
       <div
-        class="bg-poker-blue h-2.5 rounded-full transition-all duration-300"
+        class="h-2.5 rounded-full transition-all duration-300"
+        [ngClass]="obterClasseBarraProgresso()"
         [style.width.%]="calcularPorcentagemVotacao()"></div>
     </div>
+
+    <p *ngIf="totalParticipantes > 0" class="text-sm text-center text-gray-600">
+      {{ obterStatusTextoVotacao() }}
+    </p>
   </div>
 </div>
