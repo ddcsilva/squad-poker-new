@@ -5,8 +5,8 @@
 
   <div
     *ngFor="let jogador of jogadores; trackBy: trackByJogadorId"
-    class="bg-white rounded-md p-3 mb-2 flex items-center"
-    @jogadorAnimacao>
+    class="bg-white rounded-md p-3 mb-2 flex items-center animate-fade-in"
+    [@jogadorAnimacao]>
     <!-- Avatar com primeira letra e cor -->
     <div
       [style.background-color]="jogador.cor"

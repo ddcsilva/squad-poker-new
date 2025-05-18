@@ -11,10 +11,10 @@ import { trigger, transition, style, animate } from '@angular/animations';
   animations: [
     trigger('jogadorAnimacao', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(8px)' }),
-        animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+        style({ opacity: '0', transform: 'translateY(8px)' }),
+        animate('200ms ease-out', style({ opacity: '1', transform: 'translateY(0)' })),
       ]),
-      transition(':leave', [animate('150ms ease-in', style({ opacity: 0, transform: 'translateY(8px)' }))]),
+      transition(':leave', [animate('150ms ease-in', style({ opacity: '0', transform: 'translateY(8px)' }))]),
     ]),
   ],
 })
