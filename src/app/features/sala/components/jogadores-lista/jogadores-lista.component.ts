@@ -54,8 +54,6 @@ export class JogadoresListaComponent {
   }
 
   aoRemoverJogador(jogadorId: string): void {
-    if (confirm('Tem certeza que deseja remover este participante?')) {
-      this.removerJogador.emit(jogadorId);
-    }
+    this.removerJogador.emit(jogadorId);
   }
 }

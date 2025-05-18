@@ -141,3 +141,15 @@
     <div class="px-6 py-3 bg-gray-50 text-center text-xs text-gray-500 border-t">Desenvolvido por Danilo Silva</div>
   </div>
 </div>
+
+<app-confirmacao-modal
+  [visivel]="modalRemoverParticipanteVisivel()"
+  titulo="Remover Participante"
+  mensagem="Tem certeza que deseja remover este participante da sala?"
+  textoBotaoConfirmar="Sim, remover"
+  textoBotaoCancelar="Cancelar"
+  tipoBotaoConfirmar="perigo"
+  (confirmar)="executarRemocaoParticipante()"
+  (cancelar)="cancelarRemocaoParticipante()"
+  (fechar)="cancelarRemocaoParticipante()">
+</app-confirmacao-modal>
