@@ -3,7 +3,10 @@
 
   <div *ngIf="jogadores.length === 0" class="text-center p-4 text-gray-500">Nenhum participante na sala</div>
 
-  <div *ngFor="let jogador of jogadores" class="bg-white rounded-md p-3 mb-2 flex items-center">
+  <div
+    *ngFor="let jogador of jogadores; trackBy: trackByJogadorId"
+    class="bg-white rounded-md p-3 mb-2 flex items-center"
+    @jogadorAnimacao>
     <!-- Avatar com primeira letra e cor -->
     <div
       [style.background-color]="jogador.cor"
@@ -25,18 +28,18 @@
         </span>
       </div>
       <div class="text-xs" [class.text-green-600]="jogador.voto !== null" [class.text-gray-400]="jogador.voto === null">
-        {{ jogador.voto !== null ? 'Votou' : 'Não votou' }}
+        {{ getStatusTexto(jogador) }}
       </div>
     </div>
 
     <!-- Tipo de jogador -->
     <div class="text-xs bg-gray-100 px-2 py-1 rounded">
-      {{ jogador.tipo === 'participante' ? '🎮 Jogador' : '👁️ Espectador' }}
+      {{ getTipoTexto(jogador) }}
     </div>
 
     <!-- Botão remover (visível apenas quando permitido e não é o dono) -->
     <button
-      *ngIf="permissaoRemover && jogador.nome !== nomeDono"
+      *ngIf="podeRemoverJogador(jogador)"
       class="ml-2 text-red-500 hover:text-red-700 p-1"
       (click)="onRemoverJogador(jogador.id)"
       title="Remover participante">
