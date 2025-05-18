@@ -8,11 +8,18 @@ import { Sala, HistoricoRodada } from '../../core/models/sala.model';
 import { JogadoresListaComponent } from './components/jogadores-lista/jogadores-lista.component';
 import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votacao.compoment';
 import { ResultadoVotacaoComponent } from './components/resultado-votacao/resultado-votacao.component';
+import { ControlesModeracaoComponent } from './components/controles-moderacao/controles-moderacao.component';
 
 @Component({
   selector: 'app-sala',
   standalone: true,
-  imports: [CommonModule, JogadoresListaComponent, CartaoVotacaoComponent, ResultadoVotacaoComponent],
+  imports: [
+    CommonModule,
+    JogadoresListaComponent,
+    CartaoVotacaoComponent,
+    ResultadoVotacaoComponent,
+    ControlesModeracaoComponent,
+  ],
   templateUrl: './sala.component.html',
 })
 export class SalaComponent implements OnInit, OnDestroy {
@@ -196,9 +203,8 @@ export class SalaComponent implements OnInit, OnDestroy {
   }
 
   // Método auxiliar para atualizar descrição
-  atualizarDescricaoNovaRodada(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.descricaoNovaRodada.set(input.value);
+  atualizarDescricaoNovaRodada(valor: string): void {
+    this.descricaoNovaRodada.set(valor);
   }
 
   // Atualiza a pontuação definida pelo dono da sala

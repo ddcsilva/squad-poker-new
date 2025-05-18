@@ -216,59 +216,18 @@
             </app-resultado-votacao>
 
             <!-- Controles de moderador -->
-            <div *ngIf="ehDonoDaSala() && sala.votosRevelados" class="mt-6 pt-4 border-t">
-              <h3 class="font-medium text-gray-700 mb-2">Controles de Moderador</h3>
-              <div class="flex flex-col sm:flex-row gap-2 w-full">
-                <button
-                  class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center justify-center whitespace-nowrap"
-                  (click)="ocultarVotos()">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 mr-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Reiniciar Votação
-                </button>
-                <input
-                  type="text"
-                  [value]="descricaoNovaRodada()"
-                  (input)="atualizarDescricaoNovaRodada($event)"
-                  placeholder="Descrição da próxima rodada..."
-                  class="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-poker-blue focus:border-transparent" />
-                <button
-                  (click)="iniciarNovaRodada()"
-                  [disabled]="!descricaoNovaRodada() || criandoNovaRodada()"
-                  class="px-3 py-2 rounded-md transition-colors flex items-center justify-center whitespace-nowrap text-white bg-poker-blue hover:bg-blue-700"
-                  [class.bg-poker-blue]="!verificarEmpate().temEmpate && !criandoNovaRodada()"
-                  [class.bg-yellow-500]="verificarEmpate().temEmpate && !criandoNovaRodada()"
-                  [class.bg-gray-300]="criandoNovaRodada()"
-                  [class.opacity-70]="criandoNovaRodada()">
-                  <svg
-                    *ngIf="!criandoNovaRodada()"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 mr-1"
-                    viewBox="0 0 20 20"
-                    fill="currentColor">
-                    <path
-                      fill-rule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                      clip-rule="evenodd" />
-                  </svg>
-                  {{ criandoNovaRodada() ? 'Processando...' : 'Nova Rodada' }}
-                </button>
-              </div>
-              <!-- Texto de ajuda -->
-              <p class="text-xs text-gray-500 mt-2">
-                Iniciar uma nova rodada salva os resultados atuais no histórico e limpa os votos para a próxima votação.
-              </p>
-            </div>
+            <app-controles-moderacao
+              *ngIf="ehDonoDaSala()"
+              [votosRevelados]="sala.votosRevelados"
+              [descricaoNovaRodada]="descricaoNovaRodada()"
+              [processando]="criandoNovaRodada()"
+              [temEmpate]="verificarEmpate().temEmpate"
+              [participantesQueVotaram]="obterParticipantesQueVotaram()"
+              (revelarVotos)="revelarVotos()"
+              (reiniciarVotacao)="ocultarVotos()"
+              (descricaoMudou)="atualizarDescricaoNovaRodada($event)"
+              (criarNovaRodada)="iniciarNovaRodada()">
+            </app-controles-moderacao>
           </ng-container>
           <ng-template #salaEncerrada>
             <div class="flex flex-col items-center justify-center py-12">
