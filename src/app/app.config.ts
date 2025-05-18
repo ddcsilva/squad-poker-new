@@ -8,6 +8,8 @@ import { routes } from './app.routes';
 import { environment } from '../environments/environment';
 import { SALA_REPOSITORY } from './core/repositories/sala-repository.token';
 import { FirestoreSalaRepository } from './core/repositories/firestore-sala.repository';
+import { USUARIO_REPOSITORY } from './core/repositories/usuario-repository.token';
+import { LocalStorageUsuarioRepository } from './core/repositories/local-storage-usuario.repository';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,5 +19,6 @@ export const appConfig: ApplicationConfig = {
     provideFirestore(() => getFirestore()),
     provideAnimations(),
     { provide: SALA_REPOSITORY, useClass: FirestoreSalaRepository },
+    { provide: USUARIO_REPOSITORY, useClass: LocalStorageUsuarioRepository },
   ],
 };

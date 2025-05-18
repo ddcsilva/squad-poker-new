@@ -331,25 +331,24 @@ export class SalaComponent implements OnInit, OnDestroy {
     const sala = this.sala;
     if (!usuario || !sala) return;
 
-    // Se for dono
-    if (usuario.nome === sala.nomeDono) {
-      const confirmado = window.confirm(
-        'Você é o dono da sala. Sair irá ENCERRAR a sala para todos. Deseja continuar?'
-      );
-      if (confirmado) {
+    try {
+      // Se for dono - REMOVER a confirmação redundante
+      if (usuario.nome === sala.nomeDono) {
+        // O usuário já confirmou no modal do CabecalhoSalaComponent
         await this.salaService.encerrarSala(sala.id);
       } else {
-        return;
+        // Participante comum: remove da lista
+        await this.salaService.removerJogador(sala.id, usuario.id);
       }
-    } else {
-      // Participante comum: remove da lista
-      await this.salaService.removerJogador(sala.id, usuario.id);
-    }
 
-    // Limpa dados locais
-    this.usuarioService.limparUsuario();
-    // Navega para tela inicial
-    this.router.navigate(['/']);
+      // Limpar dados locais
+      this.usuarioService.limparUsuario();
+
+      // Navegar para tela inicial
+      this.router.navigate(['/']);
+    } catch (error) {
+      console.error('Erro ao sair da sala:', error);
+    }
   }
 
   removerParticipante(jogadorId: string): void {
