@@ -5,7 +5,7 @@
   <div *ngIf="!votosRevelados" class="flex justify-center">
     <button
       (click)="aoRevelarVotos()"
-      class="px-3 py-2 bg-poker-blue text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+      class="min-w-[140px] px-3 py-2 bg-poker-blue text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
       [disabled]="participantesQueVotaram === 0">
       <span [innerHTML]="iconeRevelarVotos"></span>
       Revelar Votos
@@ -13,9 +13,9 @@
   </div>
 
   <!-- Controles quando votos revelados -->
-  <div *ngIf="votosRevelados" class="flex flex-wrap gap-2 w-full">
+  <div *ngIf="votosRevelados" class="flex flex-wrap gap-2 justify-center">
     <button
-      class="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center justify-center whitespace-nowrap"
+      class="min-w-[140px] px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center justify-center whitespace-nowrap"
       (click)="aoReiniciarVotacao()"
       aria-label="Reiniciar votação atual">
       <span [innerHTML]="iconeReiniciarVotacao"></span>
@@ -25,16 +25,24 @@
     <button
       (click)="abrirModalNovaRodada()"
       [disabled]="processando"
-      class="px-3 py-2 rounded-md transition-colors flex items-center justify-center whitespace-nowrap text-white"
+      class="min-w-[140px] px-3 py-2 rounded-md transition-colors flex items-center justify-center whitespace-nowrap text-white"
       [ngClass]="obterClassesBotaoNovaRodada()"
       aria-label="Iniciar nova rodada">
       <span *ngIf="!processando" [innerHTML]="iconeNovaRodada"></span>
       {{ processando ? 'Processando...' : 'Nova Rodada' }}
     </button>
+
+    <button
+      (click)="aoEncerrarSala()"
+      class="min-w-[140px] px-3 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center whitespace-nowrap"
+      aria-label="Encerrar sala">
+      <span [innerHTML]="iconeEncerrarSala"></span>
+      Encerrar Sala
+    </button>
   </div>
 
   <!-- Texto de ajuda -->
-  <p *ngIf="votosRevelados" class="text-xs text-gray-500 mt-2">
+  <p *ngIf="votosRevelados" class="text-xs text-gray-500 mt-2 text-center">
     Inicie uma nova rodada para salvar os resultados no histórico e preparar uma nova votação.
   </p>
 </div>
