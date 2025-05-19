@@ -30,12 +30,12 @@ export class FirebaseService {
           if (snapshot.exists()) {
             const data = snapshot.data() as Sala;
 
-            // Convert Firestore timestamp to JavaScript Date
+            // Converte o timestamp do Firestore para o formato JavaScript Date
             if (data.criadaEm && 'seconds' in data.criadaEm) {
               data.criadaEm = new Date((data.criadaEm as any).seconds * 1000);
             }
 
-            // Convert timestamps in history rounds
+            // Converte timestamps em rodadas históricas
             if (data.historicoRodadas && Array.isArray(data.historicoRodadas)) {
               data.historicoRodadas = data.historicoRodadas.map(rodada => {
                 if (rodada.timestamp && 'seconds' in rodada.timestamp) {
@@ -44,7 +44,7 @@ export class FirebaseService {
                 return rodada;
               });
             } else {
-              // Initialize as empty array if missing
+              // Inicializa como array vazio se ausente
               data.historicoRodadas = data.historicoRodadas || [];
             }
 

@@ -1,4 +1,3 @@
-// src/app/core/services/sala.service.ts
 import { Injectable, inject, signal } from '@angular/core';
 import { Sala, HistoricoRodada } from '../models/sala.model';
 import { Usuario } from '../models/usuario.model';
@@ -17,17 +16,14 @@ import {
   providedIn: 'root',
 })
 export class SalaService {
-  // Injeção do repositório usando o token
   private salaRepository = inject<ISalaRepository>(SALA_REPOSITORY);
 
-  // Signal para a sala atual
   salaAtual = signal<Sala | null>(null);
 
   /**
    * Cria uma nova sala no repositório
    */
   async criarSala(nomeDono: string, descricao: string, tipoUsuario: 'participante' | 'espectador'): Promise<Sala> {
-    // Validações
     this.validarCamposObrigatorios({ nomeDono, descricao });
 
     // 1. Criar o objeto do usuário dono
@@ -70,7 +66,6 @@ export class SalaService {
     nomeUsuario: string,
     tipoUsuario: 'participante' | 'espectador'
   ): Promise<Sala> {
-    // Validações
     this.validarCamposObrigatorios({ codigoSala, nomeUsuario });
 
     // 1. Buscar a sala pelo código usando o repositório
@@ -287,8 +282,6 @@ export class SalaService {
       return false;
     }
   }
-
-  // ----------- Métodos auxiliares privados -----------
 
   /**
    * Obtém a sala atual e valida se existe, lançando erro caso contrário
