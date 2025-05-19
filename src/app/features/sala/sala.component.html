@@ -132,6 +132,7 @@
         [historicoRodadas]="sala.historicoRodadas"
         [nomeDono]="sala.nomeDono"
         [rodadaSelecionada]="rodadaSelecionada()"
+        [codigoSala]="salaId"
         (selecionarRodada)="selecionarRodadaHistorico($event)"
         (voltarParaLista)="voltarParaListaHistorico()"
         (exportarRodada)="exportarRodadaHistorico()">
@@ -153,5 +154,4 @@
   (confirmar)="executarRemocaoParticipante()"
   (cancelar)="cancelarRemocaoParticipante()"
   (fechar)="cancelarRemocaoParticipante()">
-</app-confirmacao-modal
->`
+</app-confirmacao-modal>
