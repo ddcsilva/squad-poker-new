@@ -2,12 +2,11 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Usuario } from '../../../../core/models/usuario.model';
 import { ConfirmacaoModalComponent } from '../../../../shared/components/confirmacao-modal/confirmacao-modal.component';
-import { CodigoTruncadoPipe } from '../../../../shared/codigo-truncado.pipe';
 
 @Component({
   selector: 'app-cabecalho-sala',
   standalone: true,
-  imports: [CommonModule, ConfirmacaoModalComponent, CodigoTruncadoPipe],
+  imports: [CommonModule, ConfirmacaoModalComponent],
   templateUrl: './cabecalho-sala.component.html',
 })
 export class CabecalhoSalaComponent {
