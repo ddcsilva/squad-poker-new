@@ -149,161 +149,140 @@ export class HistoricoComponent {
 
       // Criar PDF no formato A4
       const pdf = new jsPDF();
-
-      // Definir fonte padrão (mais compatível)
       pdf.setFont('helvetica', 'normal');
 
       const pageWidth = pdf.internal.pageSize.width;
       const pageHeight = pdf.internal.pageSize.height;
-      const margemLateral = 14;
-      const larguraUtil = pageWidth - margemLateral * 2;
+      const margin = 20;
+      const contentWidth = pageWidth - margin * 2;
 
-      // ===== CABEÇALHO DO DOCUMENTO =====
-      // Fundo do cabeçalho
+      // ===== CABEÇALHO =====
       pdf.setFillColor(...coresTema.azulPrincipal);
-      pdf.rect(0, 0, pageWidth, 40, 'F');
+      pdf.rect(0, 0, pageWidth, 30, 'F');
 
-      // Título sem símbolos Unicode
+      // Título
       pdf.setTextColor(255, 255, 255);
-      pdf.setFontSize(24);
-      // Removemos o símbolo e usamos apenas texto
-      pdf.text('Squad Poker', margemLateral, 20);
-
-      pdf.setFontSize(16);
-      pdf.text('Historico de Rodadas', margemLateral, 32);
+      pdf.setFontSize(18);
+      pdf.text('Squad Poker', pageWidth / 2, 14, { align: 'center' });
+      pdf.setFontSize(12);
+      pdf.text('Histórico de Rodadas', pageWidth / 2, 24, { align: 'center' });
 
       // Data de exportação
-      pdf.setFontSize(10);
-      const dataHoje = this.datePipe.transform(new Date(), 'dd/MM/yyyy HH:mm') || '';
-      pdf.text(`Exportado em ${dataHoje}`, pageWidth - margemLateral, 20, { align: 'right' });
+      pdf.setFontSize(8);
+      const dataHoje = this.datePipe.transform(new Date(), 'dd/MM/yyyy') || '';
+      pdf.text(`Exportado em ${dataHoje}`, pageWidth - margin, 24, { align: 'right' });
 
-      // Iniciar posição Y após o cabeçalho
-      let yPos = 50;
+      let yPos = 40;
 
       // ===== RODADAS =====
-      // Para cada rodada
       for (let i = 0; i < this.historicoRodadas.length; i++) {
         const rodada = this.historicoRodadas[i];
-
-        // Verificar se a próxima rodada caberá na página atual
         const numParticipantes = Object.keys(rodada.votos || {}).length;
-        const alturaEstimadaRodada = 120 + numParticipantes * 12;
+        const alturaEstimadaRodada = 50 + numParticipantes * 8;
 
-        // Se não couber, adicionar nova página
-        if (yPos + alturaEstimadaRodada > pageHeight - 20) {
+        // Nova página se necessário
+        if (yPos + alturaEstimadaRodada > pageHeight - 25) {
           pdf.addPage();
-          yPos = 20;
 
-          // Adicionar um cabeçalho simples na nova página - sem símbolos
+          // Mini-cabeçalho na nova página
           pdf.setFillColor(...coresTema.azulPrincipal);
           pdf.rect(0, 0, pageWidth, 15, 'F');
           pdf.setTextColor(255, 255, 255);
-          pdf.setFontSize(10);
-          pdf.text('Squad Poker - Historico de Rodadas (continuacao)', margemLateral, 10);
+          pdf.setFontSize(9);
+          pdf.text('Squad Poker - Histórico de Rodadas', pageWidth / 2, 10, { align: 'center' });
+
+          yPos = 25;
         }
 
-        // === TÍTULO E INFO DA RODADA ===
-        // Título da rodada com linha decorativa
-        pdf.setDrawColor(...coresTema.azulPrincipal);
-        pdf.setLineWidth(0.5);
-        pdf.line(margemLateral, yPos, pageWidth - margemLateral, yPos);
-        yPos += 5;
+        // Separador de rodadas (linha fina)
+        if (i > 0) {
+          pdf.setDrawColor(...coresTema.azulClaro);
+          pdf.setLineWidth(0.5);
+          pdf.line(margin, yPos - 10, pageWidth - margin, yPos - 10);
+        }
 
-        // Número e descrição da rodada
+        // Cabeçalho da rodada
         pdf.setTextColor(...coresTema.azulPrincipal);
-        pdf.setFontSize(14);
-        pdf.text(`Rodada ${rodada.numero}`, margemLateral, yPos);
         pdf.setFontSize(12);
-        pdf.setTextColor(...coresTema.cinzaEscuro);
-        pdf.text(rodada.descricao, 45, yPos);
+        pdf.text(`Rodada ${rodada.numero}`, margin, yPos);
 
         // Data da rodada
-        const dataRodada = this.datePipe.transform(rodada.timestamp, 'dd/MM/yyyy HH:mm') || '';
+        const dataRodada = this.datePipe.transform(rodada.timestamp, 'dd/MM/yyyy') || '';
+        pdf.setFontSize(8);
+        pdf.setTextColor(...coresTema.cinzaMedio);
+        pdf.text(dataRodada, pageWidth - margin, yPos, { align: 'right' });
+
+        yPos += 6;
+
+        // Descrição da rodada
+        pdf.setTextColor(...coresTema.cinzaEscuro);
         pdf.setFontSize(10);
-        pdf.text(dataRodada, pageWidth - margemLateral, yPos, { align: 'right' });
+        pdf.text(rodada.descricao, margin, yPos);
+
         yPos += 10;
 
-        // === PONTUAÇÃO FINAL ===
-        // Destacar pontuação final em um cartão visual
+        // Pontuação final
         if (rodada.pontuacaoFinal) {
-          pdf.setFillColor(...coresTema.azulClaro);
-          pdf.rect(margemLateral, yPos, 40, 15, 'F');
-
           pdf.setTextColor(...coresTema.azulPrincipal);
-          pdf.setFontSize(14);
-          pdf.text(`${rodada.pontuacaoFinal}`, 34, yPos + 10, { align: 'center' });
-
-          pdf.setFontSize(8);
-          pdf.text('PONTUACAO', 34, yPos + 5, { align: 'center' });
-          pdf.text('FINAL', 34, yPos + 15, { align: 'center' });
+          pdf.setFontSize(10);
+          pdf.text('Pontuação Final:', margin, yPos);
+          pdf.setFontSize(12);
+          pdf.setFontSize(12);
+          pdf.text(rodada.pontuacaoFinal, margin + 80, yPos, { align: 'center' });
         }
-        yPos += 25;
 
-        // === TABELA DE PARTICIPANTES ===
-        // Preparar os dados para a tabela - simplifique textos para evitar problemas de codificação
+        yPos += 12;
+
+        // Tabela de participantes com design minimalista
         const participantes = Object.entries(rodada.votos || {}).map(([id, jogador]) => {
-          // Evitar caracteres especiais
           const nome = jogador.nome;
           const isOwner = jogador.nome === this.nomeDono;
-
-          // Determinar o tipo de jogador correto
-          // Aqui precisamos verificar o tipo real do participante
-          // assumindo que temos acesso a essa informação
-          const tipoParticipante = 'Jogador'; // ou 'Espectador' se aplicável
-
-          return [isOwner ? `${nome} (Dono)` : nome, jogador.valor || '-', tipoParticipante];
+          return [isOwner ? `${nome} (Dono)` : nome, jogador.valor || '-'];
         });
 
-        // Configurar e desenhar a tabela
         autoTable(pdf, {
           startY: yPos,
-          head: [['Participante', 'Voto', 'Tipo']],
+          head: [['Participante', 'Voto']],
           body: participantes,
-          theme: 'striped',
+          theme: 'plain',
           headStyles: {
             fillColor: coresTema.azulPrincipal,
             textColor: 255,
             fontSize: 10,
             fontStyle: 'bold',
+            halign: 'left',
           },
           bodyStyles: {
-            fontSize: 10,
-          },
-          styles: {
-            font: 'helvetica',
-            fontStyle: 'normal',
+            fontSize: 9,
+            textColor: coresTema.cinzaEscuro,
           },
           columnStyles: {
             0: { cellWidth: 'auto' },
             1: { cellWidth: 30, halign: 'center' },
-            2: { cellWidth: 40 },
           },
-          margin: { left: margemLateral, right: margemLateral },
+          styles: {
+            cellPadding: 4,
+            font: 'helvetica',
+          },
+          margin: { left: margin, right: margin },
           alternateRowStyles: {
-            fillColor: coresTema.brancoAzulado,
+            fillColor: [250, 250, 250],
           },
         });
 
-        // Atualizar posição Y após a tabela
-        // @ts-ignore - o tipo do jspdf-autotable não está definido
+        // @ts-ignore
         yPos = pdf.lastAutoTable.finalY + 20;
-
-        // Adicionar nova página se necessário
-        if (yPos > pageHeight - 40 && i < this.historicoRodadas.length - 1) {
-          pdf.addPage();
-          yPos = 20;
-        }
       }
 
-      // Rodapé
-      // @ts-ignore - o tipo do jspdf não inclui alguns métodos internos
+      // Rodapé discreto
+      // @ts-ignore
       const totalPages = pdf.internal.pages.length - 1;
       for (let i = 1; i <= totalPages; i++) {
         pdf.setPage(i);
         pdf.setFontSize(8);
         pdf.setTextColor(...coresTema.cinzaMedio);
-        pdf.text(`Pagina ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-        pdf.text('Squad Poker - Planning Poker Simplificado', margemLateral, pageHeight - 10);
+        pdf.text(`Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+        pdf.text('Squad Poker', margin, pageHeight - 10);
       }
 
       // Salvar o PDF
