@@ -43,3 +43,15 @@ Thumbs.db
 
 # Environment Files
 /src/environments/environment.ts
+
+# Firebase local state/cache
+.firebase/
+
+# Firebase Hosting cache files
+.firebase/*.cache
+
+# VSCode workspace files
+.vscode/*.code-workspace
+
+# Yarn lock (se não usar yarn)
+yarn.lock
