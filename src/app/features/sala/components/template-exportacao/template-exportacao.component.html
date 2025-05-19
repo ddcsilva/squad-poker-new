@@ -1,0 +1,91 @@
+<!-- Template para exportação (invisível no DOM) -->
+<div
+  #templateContainer
+  class="template-exportacao w-[600px] bg-white rounded-lg shadow-lg overflow-hidden"
+  [class.hidden]="!visivel"
+  [class.absolute]="!visivel"
+  [class.left-[-9999px]]="!visivel"
+  [class.relative]="visivel">
+  <!-- Cabeçalho -->
+  <div class="p-4 border-b flex justify-between items-center bg-gradient-to-r from-poker-light to-white">
+    <div>
+      <h1 class="text-2xl font-bold text-poker-blue">Resultado da Votação</h1>
+      <p class="text-sm text-gray-500">Código da sala: {{ codigoSala }}</p>
+    </div>
+    <div class="flex items-center">
+      <span class="text-xl font-bold text-poker-blue">♠️ SQUAD POKER</span>
+    </div>
+  </div>
+
+  <!-- Informações da rodada -->
+  <div class="p-4 text-center">
+    <div class="mb-2">
+      <h2 class="text-xl font-medium text-gray-800">{{ descricaoRodada }}</h2>
+      <p class="text-sm text-gray-600">Rodada {{ numeroRodada }}</p>
+    </div>
+  </div>
+
+  <!-- Pontuação final em destaque -->
+  <div class="flex justify-center my-6">
+    <div
+      class="bg-poker-blue text-white p-6 rounded-lg text-center w-32 h-32 flex flex-col items-center justify-center">
+      <div class="text-5xl font-bold">{{ pontuacaoFinal }}</div>
+      <div class="text-sm mt-2">PONTUAÇÃO FINAL</div>
+    </div>
+  </div>
+
+  <!-- Participantes e votos -->
+  <div class="px-6 pb-6">
+    <h3 class="text-lg font-medium mb-4 text-gray-800">Participantes e Votos</h3>
+
+    <!-- Grid de participantes -->
+    <div class="grid grid-cols-3 gap-4">
+      <!-- Participantes com votos -->
+      <div *ngFor="let participante of apenasParticipantes" class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+        <div class="flex items-center mb-2">
+          <!-- Avatar colorido -->
+          <div
+            [style.background-color]="participante.cor"
+            class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold mr-2">
+            {{ obterInicialNome(participante.nome) }}
+          </div>
+          <div class="font-medium truncate">{{ participante.nome }}</div>
+        </div>
+
+        <!-- Carta do voto -->
+        <div class="flex justify-center">
+          <div
+            *ngIf="participante.voto"
+            class="w-12 h-16 bg-poker-light border-2 border-poker-blue rounded-md flex items-center justify-center font-bold text-xl text-poker-blue">
+            {{ participante.voto }}
+          </div>
+          <div
+            *ngIf="!participante.voto"
+            class="w-12 h-16 bg-gray-50 border-2 border-gray-200 rounded-md flex items-center justify-center text-gray-400">
+            -
+          </div>
+        </div>
+      </div>
+
+      <!-- Espectadores (sem votos) -->
+      <div *ngFor="let espectador of apenasEspectadores" class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+        <div class="flex items-center mb-2">
+          <!-- Avatar colorido -->
+          <div
+            [style.background-color]="espectador.cor"
+            class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold mr-2">
+            {{ obterInicialNome(espectador.nome) }}
+          </div>
+          <div class="font-medium truncate">{{ espectador.nome }}</div>
+        </div>
+        <div class="text-xs text-center text-gray-500 mt-4">👁️ Espectador</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <div class="p-4 bg-gray-50 border-t text-sm text-gray-500 flex justify-between items-center">
+    <div>{{ dataRodada | date : 'dd/MM/yyyy HH:mm:ss' }}</div>
+    <div>Desenvolvido por Danilo Silva</div>
+  </div>
+</div>

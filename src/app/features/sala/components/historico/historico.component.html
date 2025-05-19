@@ -201,3 +201,13 @@
     </div>
   </div>
 </div>
+
+<app-template-exportacao
+  [numeroRodada]="rodadaSelecionada?.numero || 0"
+  [descricaoRodada]="rodadaSelecionada?.descricao || ''"
+  [pontuacaoFinal]="rodadaSelecionada?.pontuacaoFinal || ''"
+  [participantes]="mapearParticipantesParaTemplate()"
+  [codigoSala]="codigoSala"
+  [dataRodada]="dataRodadaSelecionada"
+  [visivel]="templateVisivel">
+</app-template-exportacao>

@@ -2,13 +2,14 @@ import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@
 import { CommonModule, DatePipe } from '@angular/common';
 import { HistoricoRodada } from '../../../../core/models/sala.model';
 import { trigger, transition, style, animate } from '@angular/animations';
-import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { TemplateExportacaoComponent } from '../template-exportacao/template-exportacao.component';
 
 @Component({
   selector: 'app-historico',
   standalone: true,
-  imports: [CommonModule, DatePipe],
+  imports: [CommonModule, DatePipe, TemplateExportacaoComponent],
   providers: [DatePipe],
   templateUrl: './historico.component.html',
   animations: [
@@ -25,9 +26,10 @@ export class HistoricoComponent {
   @Input() historicoRodadas: HistoricoRodada[] = [];
   @Input() nomeDono: string = '';
   @Input() rodadaSelecionada: HistoricoRodada | null = null;
+  @Input() codigoSala: string = '';
 
   // Referência para capturar o elemento DOM da rodada
-  @ViewChild('rodadaDetalhes') rodadaDetalhes: ElementRef | undefined;
+  @ViewChild(TemplateExportacaoComponent) templateExportacao!: TemplateExportacaoComponent;
 
   @Output() selecionarRodada = new EventEmitter<HistoricoRodada>();
   @Output() voltarParaLista = new EventEmitter<void>();
@@ -36,6 +38,7 @@ export class HistoricoComponent {
   // Estados para controle de exportação
   exportandoPNG = false;
   exportandoPDF = false;
+  templateVisivel = false;
 
   constructor(private datePipe: DatePipe) {}
 
@@ -64,52 +67,67 @@ export class HistoricoComponent {
     this.voltarParaLista.emit();
   }
 
+  get dataRodadaSelecionada(): Date {
+    return this.rodadaSelecionada?.timestamp ?? new Date();
+  }
+
   async aoExportarRodada(): Promise<void> {
-    if (!this.rodadaDetalhes || !this.rodadaSelecionada) return;
+    if (!this.rodadaSelecionada) return;
 
     try {
       this.exportandoPNG = true;
+      this.templateVisivel = true;
 
-      // 1. Capturar o elemento DOM
-      const element = this.rodadaDetalhes.nativeElement;
+      // Aguardar o próximo ciclo de renderização
+      setTimeout(async () => {
+        try {
+          // CORREÇÃO 2: Verificar se templateExportacao está definido
+          if (!this.templateExportacao?.templateContainer) {
+            console.error('Template de exportação não encontrado no DOM');
+            return;
+          }
 
-      // 2. Converter com html2canvas
-      const options: any = {
-        background: 'white',
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
-        allowTaint: true,
-        removeContainer: true,
-        foreignObjectRendering: false,
-      };
-      const canvas = await html2canvas(element, options);
+          const element = this.templateExportacao.templateContainer.nativeElement;
 
-      // 3. Converter para PNG
-      const dataUrl = canvas.toDataURL('image/png');
+          const options: any = {
+            backgroundColor: 'white',
+            scale: 2,
+            logging: false,
+            useCORS: true,
+            allowTaint: true,
+          };
 
-      // 4. Criar nome do arquivo
-      const dataFormatada = this.datePipe.transform(this.rodadaSelecionada.timestamp, 'yyyy-MM-dd') || 'export';
-      const nomeArquivo = `poker-rodada-${this.rodadaSelecionada.numero}-${dataFormatada}.png`;
+          const canvas = await html2canvas(element, options);
+          const dataUrl = canvas.toDataURL('image/png');
 
-      // 5. Criar link para download e simular clique
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = nomeArquivo;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+          // CORREÇÃO 3: Usar o método seguro para formatar a data
+          const rodada = this.rodadaSelecionada!;
+          const dataFormatada = this.formatarData(rodada.timestamp);
+          const nomeArquivo = `poker-rodada-${rodada.numero}-${dataFormatada}.png`;
+
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = nomeArquivo;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (error) {
+          console.error('Erro durante a captura do template:', error);
+        } finally {
+          this.templateVisivel = false;
+          this.exportandoPNG = false;
+        }
+      }, 200); // Aumentado para garantir tempo de renderização
     } catch (error) {
       console.error('Erro ao exportar rodada:', error);
-    } finally {
+      this.templateVisivel = false;
       this.exportandoPNG = false;
     }
+  }
+
+  formatarData(data: Date | undefined): string {
+    if (!data) return 'export';
+    return this.datePipe.transform(data, 'yyyy-MM-dd') || 'export';
   }
 
   async exportarHistoricoCompleto(): Promise<void> {
@@ -194,5 +212,24 @@ export class HistoricoComponent {
     } finally {
       this.exportandoPDF = false;
     }
+  }
+
+  mapearParticipantesParaTemplate() {
+    if (!this.rodadaSelecionada?.votos) return [];
+
+    const participantes = [];
+
+    for (const jogadorId of Object.keys(this.rodadaSelecionada.votos)) {
+      const jogador = this.rodadaSelecionada.votos[jogadorId];
+      participantes.push({
+        id: jogadorId,
+        nome: jogador.nome,
+        voto: jogador.valor,
+        cor: jogador.cor,
+        tipo: 'participante' as const, // Correção usando "as const" para tipo literal
+      });
+    }
+
+    return participantes;
   }
 }
