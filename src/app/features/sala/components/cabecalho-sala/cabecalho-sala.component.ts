@@ -22,8 +22,6 @@ export class CabecalhoSalaComponent {
 
   // Estado do modal
   modalSairVisivel = false;
-  mostrarTooltip = false;
-  compartilhado = false;
 
   obterInicialNome(nome: string): string {
     return nome.charAt(0).toUpperCase();
@@ -31,29 +29,6 @@ export class CabecalhoSalaComponent {
 
   aoCopiarCodigo(): void {
     this.copiarCodigo.emit();
-  }
-
-  aoCompartilharCodigo(): void {
-    if (navigator.share) {
-      navigator
-        .share({
-          title: 'Squad Poker',
-          text: `Entre na minha sala: ${this.codigoSala}`,
-          url: window.location.href,
-        })
-        .then(() => {
-          this.compartilhado = true;
-          setTimeout(() => (this.compartilhado = false), 1500);
-        })
-        .catch(() => {
-          // fallback para copiar
-          this.aoCopiarCodigo();
-        });
-    } else {
-      this.aoCopiarCodigo();
-      this.compartilhado = true;
-      setTimeout(() => (this.compartilhado = false), 1500);
-    }
   }
 
   // Método para abrir o modal quando o botão "Sair" é clicado

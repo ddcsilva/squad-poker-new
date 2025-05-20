@@ -357,10 +357,6 @@ export class SalaComponent implements OnInit, OnDestroy {
     this.confirmarRemocaoParticipante(jogadorId);
   }
 
-  async exportarRodadaHistorico(): Promise<void> {
-    console.log('Exportar rodada do histórico');
-  }
-
   confirmarRemocaoParticipante(jogadorId: string): void {
     this.participanteParaRemover.set(jogadorId);
     this.modalRemoverParticipanteVisivel.set(true);
