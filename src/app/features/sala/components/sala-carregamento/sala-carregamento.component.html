@@ -1,0 +1,13 @@
+<div *ngIf="carregando" class="p-8 text-center">
+  <div class="animate-spin h-10 w-10 border-4 border-poker-blue border-t-transparent rounded-full mx-auto"></div>
+  <p class="mt-4 text-gray-600">Carregando sala...</p>
+</div>
+
+<div *ngIf="erro" class="p-8 text-center">
+  <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mx-auto max-w-lg">
+    <p>{{ erro }}</p>
+  </div>
+  <button (click)="voltar.emit()" class="mt-4 px-4 py-2 bg-poker-blue text-white rounded-md">
+    Voltar para o início
+  </button>
+</div>

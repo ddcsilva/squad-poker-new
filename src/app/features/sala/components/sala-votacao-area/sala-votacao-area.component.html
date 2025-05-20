@@ -1,0 +1,16 @@
+<div>
+  <!-- Status da votação - Área fixa para mobile -->
+  <app-status-votacao [numeroRodada]="numeroRodada" [usuario]="usuarioAtual" [votosRevelados]="votosRevelados">
+  </app-status-votacao>
+
+  <!-- ÁREA DE VOTAÇÃO (quando votos não revelados) -->
+  <app-cartao-votacao
+    [cartasDisponiveis]="cartasDisponiveis"
+    [valorSelecionado]="cartaSelecionada"
+    [tipoUsuario]="tipoUsuario"
+    [votacaoEncerrada]="votosRevelados"
+    [participantesQueVotaram]="participantesQueVotaram"
+    [totalParticipantes]="totalParticipantes"
+    (selecionarCarta)="votar.emit($event)">
+  </app-cartao-votacao>
+</div>

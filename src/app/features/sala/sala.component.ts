@@ -1,3 +1,4 @@
+// src/app/features/sala/sala.component.ts
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -6,14 +7,16 @@ import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { Sala, HistoricoRodada } from '../../core/models/sala.model';
 import { JogadoresListaComponent } from './components/jogadores-lista/jogadores-lista.component';
-import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votacao.compoment';
-import { ResultadoVotacaoComponent } from './components/resultado-votacao/resultado-votacao.component';
-import { ControlesModeracaoComponent } from './components/controles-moderacao/controles-moderacao.component';
 import { HistoricoComponent } from './components/historico/historico.component';
 import { CabecalhoSalaComponent } from './components/cabecalho-sala/cabecalho-sala.component';
-import { StatusVotacaoComponent } from './components/status-votacao/status-votacao.component';
 import { SalaEncerradaComponent } from './components/sala-encerrada/sala-encerrada.component';
-import { ConfirmacaoModalComponent } from '../../shared/components/confirmacao-modal/confirmacao-modal.component';
+import { SalaCarregamentoComponent } from './components/sala-carregamento/sala-carregamento.component';
+import { SalaAlternarLayoutComponent } from './components/sala-alternar-layout/sala-alternar-layout.component';
+import { StatusVotacaoComponent } from './components/status-votacao/status-votacao.component';
+import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votacao.compoment';
+import { ResultadoVotacaoComponent } from './components/resultado-votacao/resultado-votacao.component';
+import { SalaPainelModeracaoComponent } from './components/sala-painel-moderacao/sala-painel-moderacao.component';
+import { SalaRemoverParticipanteModalComponent } from './components/sala-remover-participante-modal/sala-remover-participante-modal.component';
 
 @Component({
   selector: 'app-sala',
@@ -21,14 +24,16 @@ import { ConfirmacaoModalComponent } from '../../shared/components/confirmacao-m
   imports: [
     CommonModule,
     JogadoresListaComponent,
-    CartaoVotacaoComponent,
-    ResultadoVotacaoComponent,
-    ControlesModeracaoComponent,
     HistoricoComponent,
     CabecalhoSalaComponent,
-    StatusVotacaoComponent,
     SalaEncerradaComponent,
-    ConfirmacaoModalComponent,
+    SalaCarregamentoComponent,
+    SalaAlternarLayoutComponent,
+    StatusVotacaoComponent,
+    CartaoVotacaoComponent,
+    ResultadoVotacaoComponent,
+    SalaPainelModeracaoComponent,
+    SalaRemoverParticipanteModalComponent,
   ],
   templateUrl: './sala.component.html',
 })
@@ -50,16 +55,18 @@ export class SalaComponent implements OnInit, OnDestroy {
   cartasPoker = ['1', '2', '3', '5', '8', '13', '21', '?', '☕'];
   cartaSelecionada = signal<string | null>(null);
   pontuacaoFinal = signal<string>('');
-  // Novo state para formulário
+
+  // Formulário e controles de UI
   descricaoNovaRodada = signal<string>('');
   criandoNovaRodada = signal<boolean>(false);
+
   // Estados para o histórico
   mostrandoHistorico = signal<boolean>(false);
   rodadaSelecionada = signal<HistoricoRodada | null>(null);
-  // Parte do SalaComponent.ts, adicionando os novos estados
-  // Estados para o modal de confirmação de remoção de participante
+
+  // Estados para o modal de confirmação
   modalRemoverParticipanteVisivel = signal<boolean>(false);
-  participanteParaRemover = signal<string | null>(null); // Armazena o ID do participante selecionado
+  participanteParaRemover = signal<string | null>(null);
 
   private salaSubscription?: Subscription;
 
@@ -137,7 +144,13 @@ export class SalaComponent implements OnInit, OnDestroy {
     return this.salaService.salaAtual();
   }
 
-  // Método para copiar código da sala
+  // Métodos de interação com UI
+  mostrarHistorico(mostrar: boolean): void {
+    // Reset selected round whenever we toggle history mode
+    this.rodadaSelecionada.set(null);
+    this.mostrandoHistorico.set(mostrar);
+  }
+
   copiarCodigoSala(): void {
     navigator.clipboard.writeText(this.salaId).then(() => {
       this.copiado.set(true);
@@ -170,6 +183,15 @@ export class SalaComponent implements OnInit, OnDestroy {
         this.cartaSelecionada.set(usuario.voto);
       }
     }
+  }
+
+  // Métodos para histórico
+  selecionarRodadaHistorico(rodada: HistoricoRodada): void {
+    this.rodadaSelecionada.set(rodada);
+  }
+
+  voltarParaListaHistorico(): void {
+    this.rodadaSelecionada.set(null);
   }
 
   // Controles do moderador
@@ -216,12 +238,11 @@ export class SalaComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Método auxiliar para atualizar descrição
+  // Auxiliares de formulário
   atualizarDescricaoNovaRodada(valor: string): void {
     this.descricaoNovaRodada.set(valor);
   }
 
-  // Atualiza a pontuação definida pelo dono da sala
   atualizarPontuacaoFinal(valor: string): void {
     this.pontuacaoFinal.set(valor);
   }
@@ -232,7 +253,77 @@ export class SalaComponent implements OnInit, OnDestroy {
     return this.usuarioService.usuarioAtual()!.nome === this.sala.nomeDono;
   }
 
-  // Verifica se há empate nos votos mais frequentes
+  // Métodos de manipulação de sala
+  async sairDaSala(): Promise<void> {
+    const usuario = this.usuarioService.usuarioAtual();
+    const sala = this.sala;
+    if (!usuario || !sala) return;
+
+    try {
+      // Se for dono - REMOVER a confirmação redundante
+      if (usuario.nome === sala.nomeDono) {
+        // O usuário já confirmou no modal do CabecalhoSalaComponent
+        await this.salaService.encerrarSala(sala.id);
+      } else {
+        // Participante comum: remove da lista
+        await this.salaService.removerJogador(sala.id, usuario.id);
+      }
+
+      // Limpar dados locais
+      this.usuarioService.limparUsuario();
+
+      // Navegar para tela inicial
+      this.router.navigate(['/']);
+    } catch (error) {
+      console.error('Erro ao sair da sala:', error);
+    }
+  }
+
+  async encerrarSala(): Promise<void> {
+    if (!this.ehDonoDaSala() || !this.sala) {
+      return;
+    }
+
+    try {
+      // Passar o valor da pontuação final para o método
+      await this.salaService.encerrarSala(this.sala.id, this.pontuacaoFinal());
+    } catch (error) {
+      console.error('Erro ao encerrar sala:', error);
+    }
+  }
+
+  // Métodos para manipulação de participantes
+  removerParticipante(jogadorId: string): void {
+    if (!this.sala || !this.ehDonoDaSala()) return;
+
+    this.confirmarRemocaoParticipante(jogadorId);
+  }
+
+  confirmarRemocaoParticipante(jogadorId: string): void {
+    this.participanteParaRemover.set(jogadorId);
+    this.modalRemoverParticipanteVisivel.set(true);
+  }
+
+  async executarRemocaoParticipante(): Promise<void> {
+    const jogadorId = this.participanteParaRemover();
+    if (!jogadorId || !this.sala) return;
+
+    try {
+      await this.salaService.removerJogador(this.sala.id, jogadorId);
+      this.modalRemoverParticipanteVisivel.set(false);
+      this.participanteParaRemover.set(null);
+    } catch (error) {
+      console.error('Erro ao remover participante:', error);
+    }
+  }
+
+  cancelarRemocaoParticipante(): void {
+    this.modalRemoverParticipanteVisivel.set(false);
+    this.participanteParaRemover.set(null);
+  }
+
+  // Métodos de cálculo e análise
+  // NOTA: Futuramente, estes métodos serão extraídos para um serviço utilitário
   verificarEmpate(): { temEmpate: boolean; valores: string[] } {
     if (!this.sala) return { temEmpate: false, valores: [] };
 
@@ -262,7 +353,6 @@ export class SalaComponent implements OnInit, OnDestroy {
     };
   }
 
-  // Calcula o valor mais votado e estatísticas
   calcularMaisVotado(): { valor: string; contagem: number; total: number } {
     if (!this.sala) return { valor: '-', contagem: 0, total: 0 };
 
@@ -303,94 +393,5 @@ export class SalaComponent implements OnInit, OnDestroy {
   obterTotalParticipantes(): number {
     if (!this.sala?.jogadores) return 0;
     return this.sala.jogadores.filter(j => j.tipo === 'participante').length;
-  }
-
-  // Métodos para o histórico
-  mostrarHistorico(mostrar: boolean): void {
-    // Reset selected round whenever we toggle history mode
-    this.rodadaSelecionada.set(null);
-    this.mostrandoHistorico.set(mostrar);
-  }
-
-  selecionarRodadaHistorico(rodada: HistoricoRodada): void {
-    this.rodadaSelecionada.set(rodada);
-  }
-
-  voltarParaListaHistorico(): void {
-    this.rodadaSelecionada.set(null);
-  }
-
-  // Método auxiliar para pegar IDs de jogadores da rodada
-  getJogadoresIds(rodada: HistoricoRodada): string[] {
-    if (!rodada.votos) return [];
-    return Object.keys(rodada.votos);
-  }
-
-  async sairDaSala(): Promise<void> {
-    const usuario = this.usuarioService.usuarioAtual();
-    const sala = this.sala;
-    if (!usuario || !sala) return;
-
-    try {
-      // Se for dono - REMOVER a confirmação redundante
-      if (usuario.nome === sala.nomeDono) {
-        // O usuário já confirmou no modal do CabecalhoSalaComponent
-        await this.salaService.encerrarSala(sala.id);
-      } else {
-        // Participante comum: remove da lista
-        await this.salaService.removerJogador(sala.id, usuario.id);
-      }
-
-      // Limpar dados locais
-      this.usuarioService.limparUsuario();
-
-      // Navegar para tela inicial
-      this.router.navigate(['/']);
-    } catch (error) {
-      console.error('Erro ao sair da sala:', error);
-    }
-  }
-
-  removerParticipante(jogadorId: string): void {
-    if (!this.sala || !this.ehDonoDaSala()) return;
-
-    this.confirmarRemocaoParticipante(jogadorId);
-  }
-
-  confirmarRemocaoParticipante(jogadorId: string): void {
-    this.participanteParaRemover.set(jogadorId);
-    this.modalRemoverParticipanteVisivel.set(true);
-  }
-
-  async executarRemocaoParticipante(): Promise<void> {
-    const jogadorId = this.participanteParaRemover();
-    if (!jogadorId || !this.sala) return;
-
-    try {
-      await this.salaService.removerJogador(this.sala.id, jogadorId);
-      this.modalRemoverParticipanteVisivel.set(false);
-      this.participanteParaRemover.set(null);
-    } catch (error) {
-      console.error('Erro ao remover participante:', error);
-      // Poderia mostrar uma mensagem de erro ao usuário aqui
-    }
-  }
-
-  cancelarRemocaoParticipante(): void {
-    this.modalRemoverParticipanteVisivel.set(false);
-    this.participanteParaRemover.set(null);
-  }
-
-  async encerrarSala(): Promise<void> {
-    if (!this.ehDonoDaSala() || !this.sala) {
-      return;
-    }
-
-    try {
-      // Passar o valor da pontuação final para o método
-      await this.salaService.encerrarSala(this.sala.id, this.pontuacaoFinal());
-    } catch (error) {
-      console.error('Erro ao encerrar sala:', error);
-    }
   }
 }

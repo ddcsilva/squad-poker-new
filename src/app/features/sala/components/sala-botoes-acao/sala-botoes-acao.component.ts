@@ -1,3 +1,4 @@
+// src/app/features/sala/components/sala-botoes-acao/sala-botoes-acao.component.ts
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -5,12 +6,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 
 @Component({
-  selector: 'app-controles-moderacao',
+  selector: 'app-sala-botoes-acao',
   standalone: true,
   imports: [CommonModule, FormsModule, ModalComponent],
-  templateUrl: './controles-moderacao.component.html',
+  templateUrl: './sala-botoes-acao.component.html',
 })
-export class ControlesModeracaoComponent {
+export class SalaBotoesAcaoComponent {
   @Input() votosRevelados: boolean = false;
   @Input() descricaoNovaRodada: string = '';
   @Input() processando: boolean = false;
@@ -55,7 +56,7 @@ export class ControlesModeracaoComponent {
   }
 
   confirmarNovaRodada(): void {
-    if (this.descricaoNovaRodada && !this.processando) {
+    if (this.descricaoNovaRodada) {
       this.criarNovaRodada.emit();
       this.modalNovaRodadaAberto = false;
     }

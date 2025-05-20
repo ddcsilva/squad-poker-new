@@ -1,0 +1,30 @@
+<div>
+  <!-- ÁREA DE RESULTADOS (quando votos revelados) -->
+  <app-resultado-votacao
+    [jogadores]="jogadores"
+    [nomeDono]="nomeDono"
+    [ehModerador]="ehModerador"
+    [pontuacaoFinal]="pontuacaoFinal"
+    [temEmpate]="temEmpate"
+    [valorMaisVotado]="valorMaisVotado"
+    [contagemMaisVotado]="contagemMaisVotado"
+    [totalVotosValidos]="totalVotosValidos"
+    [valoresEmpatados]="valoresEmpatados"
+    (pontuacaoFinalMudou)="pontuacaoFinalMudou.emit($event)">
+  </app-resultado-votacao>
+
+  <!-- Controles de moderador -->
+  <app-controles-moderacao
+    *ngIf="ehModerador"
+    [votosRevelados]="votosRevelados"
+    [descricaoNovaRodada]="descricaoNovaRodada"
+    [processando]="processando"
+    [temEmpate]="temEmpate"
+    [participantesQueVotaram]="participantesQueVotaram"
+    (revelarVotos)="revelarVotos.emit()"
+    (reiniciarVotacao)="reiniciarVotacao.emit()"
+    (descricaoMudou)="descricaoMudou.emit($event)"
+    (criarNovaRodada)="criarNovaRodada.emit()"
+    (encerrarSala)="encerrarSala.emit()">
+  </app-controles-moderacao>
+</div>
