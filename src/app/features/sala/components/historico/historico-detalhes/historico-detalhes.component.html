@@ -48,15 +48,15 @@
 
       <!-- Caso não haja votos -->
       <div
-        *ngIf="getJogadoresIds(rodada).length === 0"
+        *ngIf="obterJogadoresIds(rodada).length === 0"
         class="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
         <p>Nenhum voto registrado nesta rodada.</p>
       </div>
 
       <!-- Grid de votos -->
-      <div *ngIf="getJogadoresIds(rodada).length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div *ngIf="obterJogadoresIds(rodada).length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         <div
-          *ngFor="let jogadorId of getJogadoresIds(rodada); trackBy: trackById"
+          *ngFor="let jogadorId of obterJogadoresIds(rodada); trackBy: trackById"
           class="bg-white p-3 rounded-lg border border-gray-200">
           <!-- Avatar e nome -->
           <div class="flex items-center mb-2">
@@ -71,7 +71,7 @@
                 *ngIf="rodada.votos[jogadorId].nome === nomeDono"
                 class="ml-1 inline-flex items-center align-middle"
                 title="Criador da sala">
-                <span [innerHTML]="iconeCrown"></span>
+                <span [innerHTML]="iconeCoroa"></span>
               </span>
             </div>
           </div>

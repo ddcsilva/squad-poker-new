@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Usuario } from '../../../../core/models/usuario.model';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { IconesService } from '../../../../core/services/icones.service';
 
 @Component({
   selector: 'app-jogadores-lista',
@@ -20,29 +21,20 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   ],
 })
 export class JogadoresListaComponent {
+  private iconesService = inject(IconesService);
+
   @Input() jogadores: Usuario[] = [];
   @Input() nomeDono: string = '';
   @Input() permissaoRemover: boolean = false;
 
   @Output() removerJogador = new EventEmitter<string>();
 
-  constructor(private sanitizer: DomSanitizer) {}
-
   get iconeCoroa(): SafeHtml {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 text-amber-500 fill-current">
-      <path d="M4 17L2 7l6 5 4-8 4 8 6-5-2 10H4zm0 2h16v2H4v-2z" />
-    </svg>`;
-    return this.sanitizer.bypassSecurityTrustHtml(svg);
+    return this.iconesService.iconeCoroa;
   }
 
   get iconeExcluir(): SafeHtml {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-      <path
-        fill-rule="evenodd"
-        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-        clip-rule="evenodd" />
-    </svg>`;
-    return this.sanitizer.bypassSecurityTrustHtml(svg);
+    return this.iconesService.iconeExcluir;
   }
 
   trackByJogadorId(index: number, jogador: Usuario): string {

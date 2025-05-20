@@ -1,4 +1,3 @@
-// src/app/core/repositories/local-storage-usuario.repository.ts
 import { Injectable } from '@angular/core';
 import { Usuario } from '../models/usuario.model';
 import { IUsuarioRepository } from './usuario-repository.interface';

@@ -1,4 +1,3 @@
-// src/app/core/services/usuario.service.ts
 import { Injectable, inject, signal } from '@angular/core';
 import { Usuario } from '../models/usuario.model';
 import { USUARIO_REPOSITORY } from '../repositories/usuario-repository.token';

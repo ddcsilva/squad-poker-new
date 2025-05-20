@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Usuario } from '../../../../core/models/usuario.model';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { SafeHtml } from '@angular/platform-browser';
+import { IconesService } from '../../../../core/services/icones.service';
 
 @Component({
   selector: 'app-resultado-votacao',
@@ -10,6 +11,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   templateUrl: './resultado-votacao.component.html',
 })
 export class ResultadoVotacaoComponent {
+  private iconesService = inject(IconesService);
+
   @Input() jogadores: Usuario[] = [];
   @Input() nomeDono: string = '';
   @Input() ehModerador: boolean = false;
@@ -22,13 +25,8 @@ export class ResultadoVotacaoComponent {
 
   @Output() pontuacaoFinalMudou = new EventEmitter<string>();
 
-  constructor(private sanitizer: DomSanitizer) {}
-
   get iconeCoroa(): SafeHtml {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 text-amber-500 fill-current">
-      <path d="M4 17L2 7l6 5 4-8 4 8 6-5-2 10H4zm0 2h16v2H4v-2z" />
-    </svg>`;
-    return this.sanitizer.bypassSecurityTrustHtml(svg);
+    return this.iconesService.iconeCoroa;
   }
 
   trackById(index: number, jogador: Usuario): string {

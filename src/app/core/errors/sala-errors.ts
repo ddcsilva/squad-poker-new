@@ -1,4 +1,3 @@
-// src/app/core/errors/sala-errors.ts
 export class SalaError extends Error {
   constructor(message: string) {
     super(message);
