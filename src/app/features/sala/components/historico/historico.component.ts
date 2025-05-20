@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HistoricoRodada } from '../../../../core/models/sala.model';
 import { TemplateExportacaoComponent } from '../template-exportacao/template-exportacao.component';

@@ -1,4 +1,3 @@
-// src/app/features/sala/sala.component.ts
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -17,6 +16,7 @@ import { CartaoVotacaoComponent } from './components/cartao-votacao/cartao-votac
 import { ResultadoVotacaoComponent } from './components/resultado-votacao/resultado-votacao.component';
 import { SalaPainelModeracaoComponent } from './components/sala-painel-moderacao/sala-painel-moderacao.component';
 import { SalaRemoverParticipanteModalComponent } from './components/sala-remover-participante-modal/sala-remover-participante-modal.component';
+import { VotacaoService } from '../../core/services/votacao.service';
 
 @Component({
   selector: 'app-sala',
@@ -39,10 +39,11 @@ import { SalaRemoverParticipanteModalComponent } from './components/sala-remover
 })
 export class SalaComponent implements OnInit, OnDestroy {
   // Injeção de dependências
-  private route = inject(ActivatedRoute);
   public router = inject(Router);
-  private salaService = inject(SalaService);
   public usuarioService = inject(UsuarioService);
+  private route = inject(ActivatedRoute);
+  private salaService = inject(SalaService);
+  private votacaoService = inject(VotacaoService);
 
   // Math exposto para uso no template
   public Math = Math;
@@ -323,75 +324,24 @@ export class SalaComponent implements OnInit, OnDestroy {
   }
 
   // Métodos de cálculo e análise
-  // NOTA: Futuramente, estes métodos serão extraídos para um serviço utilitário
   verificarEmpate(): { temEmpate: boolean; valores: string[] } {
     if (!this.sala) return { temEmpate: false, valores: [] };
-
-    // Contagem de cada voto
-    const contagem: Record<string, number> = {};
-    const votos = this.sala.jogadores.filter(j => j.voto !== null).map(j => j.voto!);
-
-    if (votos.length === 0) return { temEmpate: false, valores: [] };
-
-    // Conta ocorrências
-    votos.forEach(voto => {
-      contagem[voto] = (contagem[voto] || 0) + 1;
-    });
-
-    // Encontra o maior número de votos
-    const maiorContagem = Math.max(...Object.values(contagem));
-
-    // Encontra todos os valores com essa contagem
-    const valoresEmpatados = Object.entries(contagem)
-      .filter(([_, count]) => count === maiorContagem)
-      .map(([valor, _]) => valor);
-
-    // Temos empate se mais de um valor tem a contagem máxima
-    return {
-      temEmpate: valoresEmpatados.length > 1,
-      valores: valoresEmpatados,
-    };
+    return this.votacaoService.verificarEmpate(this.sala.jogadores);
   }
 
   calcularMaisVotado(): { valor: string; contagem: number; total: number } {
     if (!this.sala) return { valor: '-', contagem: 0, total: 0 };
-
-    const votos = this.sala.jogadores.filter(j => j.voto !== null).map(j => j.voto!);
-
-    if (votos.length === 0) return { valor: '-', contagem: 0, total: 0 };
-
-    // Conta ocorrências de cada voto
-    const contagem: Record<string, number> = {};
-    votos.forEach(voto => {
-      contagem[voto] = (contagem[voto] || 0) + 1;
-    });
-
-    // Encontra o voto mais frequente
-    let maisVotado = votos[0];
-    let maiorContagem = contagem[maisVotado];
-
-    Object.entries(contagem).forEach(([voto, count]) => {
-      if (count > maiorContagem) {
-        maisVotado = voto;
-        maiorContagem = count;
-      }
-    });
-
-    return {
-      valor: maisVotado,
-      contagem: maiorContagem,
-      total: votos.length,
-    };
+    return this.votacaoService.calcularMaisVotado(this.sala.jogadores);
   }
 
   // Métodos auxiliares para o template
   obterParticipantesQueVotaram(): number {
     if (!this.sala?.jogadores) return 0;
-    return this.sala.jogadores.filter(j => j.tipo === 'participante' && j.voto !== null).length;
+    return this.votacaoService.contarParticipantesQueVotaram(this.sala.jogadores);
   }
 
   obterTotalParticipantes(): number {
     if (!this.sala?.jogadores) return 0;
-    return this.sala.jogadores.filter(j => j.tipo === 'participante').length;
+    return this.votacaoService.contarTotalParticipantes(this.sala.jogadores);
   }
 }

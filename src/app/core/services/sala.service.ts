@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { SALA_REPOSITORY } from '../repositories/sala-repository.token';
 import { ISalaRepository } from '../repositories/sala-repository.interface';
+import { VotacaoService } from './votacao.service';
 import {
   JogadorNaoEncontradoError,
   SalaEncerradaError,
@@ -17,6 +18,7 @@ import {
 })
 export class SalaService {
   private salaRepository = inject<ISalaRepository>(SALA_REPOSITORY);
+  private votacaoService = inject(VotacaoService);
 
   salaAtual = signal<Sala | null>(null);
 
@@ -344,26 +346,7 @@ export class SalaService {
    * Calcula o valor mais votado entre os jogadores
    */
   private calcularMaisVotado(jogadores: Usuario[]): string {
-    const votos = jogadores.filter(j => j.voto !== null).map(j => j.voto!);
-
-    if (votos.length === 0) return '-';
-
-    const contagem: Record<string, number> = {};
-    votos.forEach(voto => {
-      contagem[voto] = (contagem[voto] || 0) + 1;
-    });
-
-    let maisVotado = votos[0];
-    let maiorContagem = contagem[maisVotado];
-
-    Object.entries(contagem).forEach(([voto, count]) => {
-      if (count > maiorContagem) {
-        maisVotado = voto;
-        maiorContagem = count;
-      }
-    });
-
-    return maisVotado;
+    return this.votacaoService.calcularMaisVotado(jogadores).valor;
   }
 
   /**
