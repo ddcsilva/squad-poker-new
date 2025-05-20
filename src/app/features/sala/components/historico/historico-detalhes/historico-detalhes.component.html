@@ -1,0 +1,90 @@
+<!-- src/app/features/sala/components/historico/historico-detalhes/historico-detalhes.component.html -->
+<div class="animate-fade-in">
+  <div class="bg-white rounded-lg border border-gray-200 p-5">
+    <!-- Cabeçalho com botão voltar -->
+    <div class="flex justify-between items-center mb-4">
+      <button
+        class="text-sm text-poker-blue flex items-center hover:underline"
+        (click)="voltar.emit()"
+        aria-label="Voltar para a lista">
+        <span [innerHTML]="iconeVoltar"></span>
+        Voltar para lista
+      </button>
+
+      <button
+        class="text-sm bg-poker-blue text-white px-3 py-1.5 rounded-md flex items-center"
+        (click)="exportar.emit()"
+        [disabled]="exportandoPNG"
+        aria-label="Exportar rodada">
+        <span *ngIf="!exportandoPNG" [innerHTML]="iconeDownload"></span>
+        <span *ngIf="exportandoPNG" [innerHTML]="iconeCarregando"></span>
+        {{ exportandoPNG ? 'Exportando...' : 'Exportar' }}
+      </button>
+    </div>
+
+    <!-- Informações da rodada -->
+    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+      <h3 class="text-xl font-medium text-gray-800 mb-1">Rodada {{ rodada.numero }}</h3>
+      <p class="text-gray-600 mb-3">{{ rodada.descricao }}</p>
+
+      <div class="flex flex-col sm:flex-row justify-between">
+        <div>
+          <span class="text-sm text-gray-500">Data:</span>
+          <span class="text-sm ml-1">{{ rodada.timestamp | date : 'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <div class="mt-2 sm:mt-0">
+          <span class="text-sm text-gray-500">Pontuação final:</span>
+          <span class="ml-1 px-2 py-0.5 bg-green-100 text-green-800 rounded text-sm font-medium">
+            {{ rodada.pontuacaoFinal || '-' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Votos da rodada -->
+    <div>
+      <h4 class="font-medium text-gray-700 mb-3">Votos dos participantes</h4>
+
+      <!-- Caso não haja votos -->
+      <div
+        *ngIf="getJogadoresIds(rodada).length === 0"
+        class="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+        <p>Nenhum voto registrado nesta rodada.</p>
+      </div>
+
+      <!-- Grid de votos -->
+      <div *ngIf="getJogadoresIds(rodada).length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div
+          *ngFor="let jogadorId of getJogadoresIds(rodada); trackBy: trackById"
+          class="bg-white p-3 rounded-lg border border-gray-200">
+          <!-- Avatar e nome -->
+          <div class="flex items-center mb-2">
+            <div
+              [style.background-color]="rodada.votos[jogadorId].cor"
+              class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-2">
+              {{ obterInicialNome(rodada.votos[jogadorId].nome) }}
+            </div>
+            <div class="font-medium text-sm truncate flex items-center">
+              {{ rodada.votos[jogadorId].nome }}
+              <span
+                *ngIf="rodada.votos[jogadorId].nome === nomeDono"
+                class="ml-1 inline-flex items-center align-middle"
+                title="Criador da sala">
+                <span [innerHTML]="iconeCrown"></span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Voto -->
+          <div class="flex justify-center">
+            <div
+              class="w-12 h-16 bg-poker-light border-2 border-poker-blue rounded-md flex items-center justify-center font-bold text-xl text-poker-blue">
+              {{ rodada.votos[jogadorId].valor }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
