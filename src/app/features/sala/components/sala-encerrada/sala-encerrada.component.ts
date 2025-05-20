@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-sala-encerrada',
@@ -22,6 +23,15 @@ export class SalaEncerradaComponent {
   @Input() mostrarBotaoVoltar: boolean = false;
 
   @Output() voltar = new EventEmitter<void>();
+
+  constructor(private sanitizer: DomSanitizer) {}
+
+  get iconeEncerrado(): SafeHtml {
+    const svg = `<svg class="h-12 w-12 text-red-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>`;
+    return this.sanitizer.bypassSecurityTrustHtml(svg);
+  }
 
   aoVoltar(): void {
     this.voltar.emit();

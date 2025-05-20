@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Usuario } from '../../../../core/models/usuario.model';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-resultado-votacao',
@@ -20,6 +21,15 @@ export class ResultadoVotacaoComponent {
   @Input() valoresEmpatados: string[] = [];
 
   @Output() pontuacaoFinalMudou = new EventEmitter<string>();
+
+  constructor(private sanitizer: DomSanitizer) {}
+
+  get iconeCoroa(): SafeHtml {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 text-amber-500 fill-current">
+      <path d="M4 17L2 7l6 5 4-8 4 8 6-5-2 10H4zm0 2h16v2H4v-2z" />
+    </svg>`;
+    return this.sanitizer.bypassSecurityTrustHtml(svg);
+  }
 
   trackById(index: number, jogador: Usuario): string {
     return jogador.id;
