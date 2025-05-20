@@ -1,0 +1,15 @@
+<div
+  *ngIf="atualizacaoService.atualizacaoDisponivel"
+  class="fixed bottom-4 right-4 bg-poker-blue text-white p-3 rounded-lg shadow-lg z-50 max-w-xs animate-fade-in">
+  <div class="flex items-start">
+    <div class="flex-1">
+      <p class="font-medium">Nova versão disponível!</p>
+      <p class="text-sm opacity-90">Atualize para obter as últimas melhorias.</p>
+    </div>
+    <button
+      (click)="atualizar()"
+      class="ml-3 px-3 py-1 bg-white text-poker-blue text-sm rounded hover:bg-blue-50 transition-colors">
+      Atualizar
+    </button>
+  </div>
+</div>
