@@ -27,9 +27,9 @@
 
 ## 🔧 Tecnologias
 
-| ![Angular](https://angular.io/assets/images/logos/angular/angular.svg) | ![Tailwind](https://tailwindcss.com/favicons/favicon-32x32.png) | ![Firebase](https://firebase.google.com/favicon.ico) | ![RxJS](https://rxjs.dev/assets/images/logos/rxjs/rxjs.png) | ![TypeScript](https://www.typescriptlang.org/favicon-32x32.png) |
-|:--:|:--:|:--:|:--:|:--:|
-| Angular 18 | Tailwind CSS | Firebase | RxJS | TypeScript |
+| ![Angular](https://skillicons.dev/icons?i=angular) | ![Tailwind](https://skillicons.dev/icons?i=tailwind) | ![Firebase](https://skillicons.dev/icons?i=firebase) | ![TypeScript](https://skillicons.dev/icons?i=typescript) |
+|:--:|:--:|:--:|:--:|
+| Angular 18 | Tailwind CSS | Firebase | TypeScript |
 
 ## 🚀 Como Começar
 
