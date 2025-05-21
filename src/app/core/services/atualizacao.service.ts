@@ -24,7 +24,7 @@ export class AtualizacaoService {
         });
     }
   }
-
+  
   atualizarParaNovaVersao(): Promise<boolean> {
     if (!this.swUpdate.isEnabled) {
       return Promise.resolve(false);

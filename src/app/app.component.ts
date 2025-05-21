@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { StatusConexaoComponent } from './shared/components/status-conexao/status-conexao.component';
 import { AtualizacaoDisponivelComponent } from './shared/components/atualizacao-disponivel/atualizacao-disponivel.component';
@@ -15,5 +15,5 @@ import { AtualizacaoService } from './core/services/atualizacao.service';
   `,
 })
 export class AppComponent {
-  constructor(private atualizacaoService: AtualizacaoService) {}
+  private atualizacaoService = inject(AtualizacaoService);
 }
