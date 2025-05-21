@@ -27,7 +27,7 @@
 
 ## 🔧 Tecnologias
 
-| ![Angular](https://angular.dev/assets/icons/favicon.svg) | ![Tailwind](https://tailwindcss.com/favicons/favicon-32x32.png) | ![Firebase](https://firebase.google.com/favicon.ico) | ![RxJS](https://rxjs.dev/assets/images/favicons/favicon-32x32.png) | ![TypeScript](https://www.typescriptlang.org/favicon-32x32.png) |
+| ![Angular](https://angular.io/assets/images/logos/angular/angular.svg) | ![Tailwind](https://tailwindcss.com/favicons/favicon-32x32.png) | ![Firebase](https://firebase.google.com/favicon.ico) | ![RxJS](https://rxjs.dev/assets/images/logos/rxjs/rxjs.png) | ![TypeScript](https://www.typescriptlang.org/favicon-32x32.png) |
 |:--:|:--:|:--:|:--:|:--:|
 | Angular 18 | Tailwind CSS | Firebase | RxJS | TypeScript |
 
