@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'; // 🆕 Import essencial
 import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { Sala, HistoricoRodada } from '../../core/models/sala.model';
@@ -37,13 +37,14 @@ import { VotacaoService } from '../../core/services/votacao.service';
   ],
   templateUrl: './sala.component.html',
 })
-export class SalaComponent implements OnInit, OnDestroy {
+export class SalaComponent implements OnInit {
   // Injeção de dependências
   public router = inject(Router);
   public usuarioService = inject(UsuarioService);
   private route = inject(ActivatedRoute);
   private salaService = inject(SalaService);
   private votacaoService = inject(VotacaoService);
+  private destroyRef = inject(DestroyRef);
 
   // Math exposto para uso no template
   public Math = Math;
@@ -69,18 +70,9 @@ export class SalaComponent implements OnInit, OnDestroy {
   modalRemoverParticipanteVisivel = signal<boolean>(false);
   participanteParaRemover = signal<string | null>(null);
 
-  private salaSubscription?: Subscription;
-
   ngOnInit(): void {
     this.salaId = this.route.snapshot.paramMap.get('id') || '';
     this.carregarSala();
-  }
-
-  ngOnDestroy(): void {
-    // Limpar subscription para evitar memory leaks
-    if (this.salaSubscription) {
-      this.salaSubscription.unsubscribe();
-    }
   }
 
   private async carregarSala(): Promise<void> {
@@ -94,61 +86,62 @@ export class SalaComponent implements OnInit, OnDestroy {
 
       // Verificar se o usuário está autenticado
       if (!this.usuarioService.usuarioAtual()) {
-        // Se não tiver usuário, volta para entrada
         this.router.navigate(['/']);
         return;
       }
 
-      // Observar mudanças na sala em tempo real
-      this.salaSubscription = this.salaService.observarSala(this.salaId).subscribe({
-        next: sala => {
-          this.carregando.set(false);
+      this.salaService
+        .observarSala(this.salaId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: sala => {
+            this.carregando.set(false);
 
-          const usuarioAtual = this.usuarioService.usuarioAtual();
-          if (usuarioAtual) {
-            const usuarioAindaNaSala = sala.jogadores.some(j => j.id === usuarioAtual.id);
+            const usuarioAtual = this.usuarioService.usuarioAtual();
+            if (usuarioAtual) {
+              const usuarioAindaNaSala = sala.jogadores.some(j => j.id === usuarioAtual.id);
 
-            // Se o usuário não estiver mais na sala, redirecionar para a tela inicial
-            if (!usuarioAindaNaSala) {
-              // Limpar dados do usuário local
-              this.usuarioService.limparUsuario();
+              // Se o usuário não estiver mais na sala, redirecionar para a tela inicial
+              if (!usuarioAindaNaSala) {
+                // Limpar dados do usuário local
+                this.usuarioService.limparUsuario();
 
-              // Exibir mensagem e redirecionar
-              this.router.navigate(['/'], {
-                state: {
-                  mensagem: 'Você foi removido da sala pelo moderador.',
-                },
-              });
-              return;
+                // Exibir mensagem e redirecionar
+                this.router.navigate(['/'], {
+                  state: {
+                    mensagem: 'Você foi removido da sala pelo moderador.',
+                  },
+                });
+                return;
+              }
+
+              // Buscar o usuário atualizado do array de jogadores para ter o voto mais recente
+              const jogadorAtualizado = sala.jogadores.find(j => j.id === usuarioAtual.id);
+              if (jogadorAtualizado) {
+                // Atualizar o usuário no serviço para manter tudo consistente
+                this.usuarioService.atualizarVotoUsuario(jogadorAtualizado.voto);
+
+                // Atualizar estado local da carta selecionada
+                this.cartaSelecionada.set(jogadorAtualizado.voto);
+              }
             }
 
-            // Buscar o usuário atualizado do array de jogadores para ter o voto mais recente
-            const jogadorAtualizado = sala.jogadores.find(j => j.id === usuarioAtual.id);
-            if (jogadorAtualizado) {
-              // Atualizar o usuário no serviço para manter tudo consistente
-              this.usuarioService.atualizarVotoUsuario(jogadorAtualizado.voto);
+            // Se os votos acabaram de ser revelados, definir pontuação inicial
+            if (sala.votosRevelados && this.pontuacaoFinal() === '') {
+              const { temEmpate } = this.verificarEmpate();
+              const maisVotado = this.calcularMaisVotado();
 
-              // Atualizar estado local da carta selecionada
-              this.cartaSelecionada.set(jogadorAtualizado.voto);
+              if (!temEmpate && maisVotado.valor !== '-') {
+                this.pontuacaoFinal.set(maisVotado.valor);
+              }
             }
-          }
-
-          // Se os votos acabaram de ser revelados, definir pontuação inicial
-          if (sala.votosRevelados && this.pontuacaoFinal() === '') {
-            const { temEmpate } = this.verificarEmpate();
-            const maisVotado = this.calcularMaisVotado();
-
-            if (!temEmpate && maisVotado.valor !== '-') {
-              this.pontuacaoFinal.set(maisVotado.valor);
-            }
-          }
-        },
-        error: error => {
-          console.error('Erro ao carregar sala:', error);
-          this.erro.set('Sala não encontrada ou você não tem permissão');
-          this.carregando.set(false);
-        },
-      });
+          },
+          error: error => {
+            console.error('Erro ao carregar sala:', error);
+            this.erro.set('Sala não encontrada ou você não tem permissão');
+            this.carregando.set(false);
+          },
+        });
     } catch (error: any) {
       this.erro.set(error.message || 'Erro ao carregar sala');
       this.carregando.set(false);
