@@ -6,7 +6,7 @@
     <button
       (click)="aoRevelarVotos()"
       class="min-w-[140px] px-3 py-2 bg-poker-blue text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-      [disabled]="participantesQueVotaram === 0">
+      [disabled]="participantesQueVotaram !== totalParticipantes || totalParticipantes === 0">
       <span [innerHTML]="iconeRevelarVotos"></span>
       Revelar Votos
     </button>

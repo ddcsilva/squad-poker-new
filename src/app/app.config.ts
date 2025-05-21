@@ -22,9 +22,10 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     { provide: SALA_REPOSITORY, useClass: FirestoreSalaRepository },
     { provide: USUARIO_REPOSITORY, useClass: LocalStorageUsuarioRepository },
-    DatePipe, provideServiceWorker('ngsw-worker.js', {
-            enabled: !isDevMode(),
-            registrationStrategy: 'registerWhenStable:30000'
-          }),
+    DatePipe,
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };

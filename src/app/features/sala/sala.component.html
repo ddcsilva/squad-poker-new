@@ -81,6 +81,7 @@
                 [processando]="criandoNovaRodada()"
                 [temEmpate]="verificarEmpate().temEmpate"
                 [participantesQueVotaram]="obterParticipantesQueVotaram()"
+                [totalParticipantes]="obterTotalParticipantes()"
                 (revelarVotos)="revelarVotos()"
                 (reiniciarVotacao)="ocultarVotos()"
                 (descricaoMudou)="atualizarDescricaoNovaRodada($event)"
