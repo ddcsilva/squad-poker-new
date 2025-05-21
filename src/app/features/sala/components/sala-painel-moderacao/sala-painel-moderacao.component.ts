@@ -15,7 +15,7 @@ export class SalaPainelModeracaoComponent {
   @Input() processando: boolean = false;
   @Input() temEmpate: boolean = false;
   @Input() participantesQueVotaram: number = 0;
-  @Input() totalParticipantes: number = 0;
+  @Input() totalParticipantes: number = 0; // 🆕 Novo input
 
   @Output() revelarVotos = new EventEmitter<void>();
   @Output() reiniciarVotacao = new EventEmitter<void>();

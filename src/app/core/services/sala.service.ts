@@ -4,7 +4,7 @@ import { Usuario } from '../models/usuario.model';
 import { Observable, tap } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { SALA_REPOSITORY } from '../repositories/sala-repository.token';
-import { ISalaRepository } from '../repositories/sala-repository.interface';
+import { ISalaRepository } from '../interfaces/sala-repository.interface';
 import { VotacaoService } from './votacao.service';
 import {
   JogadorNaoEncontradoError,

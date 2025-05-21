@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Firestore, doc, setDoc, getDoc, onSnapshot } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { Sala, HistoricoRodada } from '../models/sala.model';
-import { ISalaRepository } from './sala-repository.interface';
+import { ISalaRepository } from '../interfaces/sala-repository.interface';
 
 /**
  * Implementação do repositório de salas usando Firebase Firestore

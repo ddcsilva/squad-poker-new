@@ -19,7 +19,7 @@ export class SalaBotoesAcaoComponent {
   @Input() processando: boolean = false;
   @Input() temEmpate: boolean = false;
   @Input() participantesQueVotaram: number = 0;
-  @Input() totalParticipantes: number = 0;
+  @Input() totalParticipantes: number = 0; // 🆕 Novo input adicionado
 
   @Output() revelarVotos = new EventEmitter<void>();
   @Output() reiniciarVotacao = new EventEmitter<void>();
@@ -28,6 +28,35 @@ export class SalaBotoesAcaoComponent {
   @Output() encerrarSala = new EventEmitter<void>();
 
   modalNovaRodadaAberto = false;
+
+  // 🆕 Getter para verificar se pode revelar votos
+  get podeRevelarVotos(): boolean {
+    return this.participantesQueVotaram === this.totalParticipantes && this.totalParticipantes > 0;
+  }
+
+  // 🆕 Getter para o texto dinâmico do botão
+  get textoRevelarVotos(): string {
+    if (this.totalParticipantes === 0) {
+      return 'Aguardando participantes';
+    }
+
+    if (this.podeRevelarVotos) {
+      return 'Revelar Votos';
+    }
+
+    return `Aguardando votos`;
+  }
+
+  // 🆕 Getter para classes CSS do botão
+  get classesRevelarVotos(): string {
+    const baseClasses = 'min-w-[140px] px-3 py-2 rounded-md transition-colors flex items-center justify-center';
+
+    if (this.podeRevelarVotos) {
+      return `${baseClasses} bg-poker-blue text-white hover:bg-blue-700 cursor-pointer`;
+    } else {
+      return `${baseClasses} bg-gray-300 text-gray-500 cursor-not-allowed`;
+    }
+  }
 
   get iconeRevelarVotos(): SafeHtml {
     return this.iconesService.iconeRevelarVotos;

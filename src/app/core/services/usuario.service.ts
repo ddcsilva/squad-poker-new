@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Usuario } from '../models/usuario.model';
 import { USUARIO_REPOSITORY } from '../repositories/usuario-repository.token';
-import { IUsuarioRepository } from '../repositories/usuario-repository.interface';
+import { IUsuarioRepository } from '../interfaces/usuario-repository.interface';
 
 @Injectable({
   providedIn: 'root',

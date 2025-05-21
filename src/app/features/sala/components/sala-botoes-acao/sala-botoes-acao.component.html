@@ -5,10 +5,13 @@
   <div *ngIf="!votosRevelados" class="flex justify-center">
     <button
       (click)="aoRevelarVotos()"
-      class="min-w-[140px] px-3 py-2 bg-poker-blue text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-      [disabled]="participantesQueVotaram !== totalParticipantes || totalParticipantes === 0">
-      <span [innerHTML]="iconeRevelarVotos"></span>
-      Revelar Votos
+      [class]="classesRevelarVotos"
+      [disabled]="!podeRevelarVotos"
+      [attr.aria-label]="podeRevelarVotos ? 'Revelar votos de todos os participantes' : textoRevelarVotos">
+      <!-- 🆕 Ícone com opacidade condicional -->
+      <span [innerHTML]="iconeRevelarVotos" [class.opacity-50]="!podeRevelarVotos"> </span>
+      <!-- 🆕 Texto dinâmico -->
+      {{ textoRevelarVotos }}
     </button>
   </div>
 

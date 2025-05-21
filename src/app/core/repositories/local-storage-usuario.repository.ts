@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Usuario } from '../models/usuario.model';
-import { IUsuarioRepository } from './usuario-repository.interface';
+import { IUsuarioRepository } from '../interfaces/usuario-repository.interface';
 
 /**
  * Implementação do repositório de usuário usando localStorage
