@@ -1,5 +1,8 @@
 import { Usuario } from './usuario.model';
 
+/**
+ * Interface para representar uma sala de votação
+ */
 export interface Sala {
   id: string;
   nomeDono: string;
@@ -12,6 +15,9 @@ export interface Sala {
   criadaEm: Date;
 }
 
+/**
+ * Interface para representar uma rodada de votação
+ */
 export interface HistoricoRodada {
   numero: number;
   descricao: string;
