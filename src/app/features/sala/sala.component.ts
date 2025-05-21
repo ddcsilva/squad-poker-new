@@ -104,9 +104,24 @@ export class SalaComponent implements OnInit, OnDestroy {
         next: sala => {
           this.carregando.set(false);
 
-          // Atualizar estado de carta selecionada com base no voto atual
           const usuarioAtual = this.usuarioService.usuarioAtual();
           if (usuarioAtual) {
+            const usuarioAindaNaSala = sala.jogadores.some(j => j.id === usuarioAtual.id);
+
+            // Se o usuário não estiver mais na sala, redirecionar para a tela inicial
+            if (!usuarioAindaNaSala) {
+              // Limpar dados do usuário local
+              this.usuarioService.limparUsuario();
+
+              // Exibir mensagem e redirecionar
+              this.router.navigate(['/'], {
+                state: {
+                  mensagem: 'Você foi removido da sala pelo moderador.',
+                },
+              });
+              return;
+            }
+
             // Buscar o usuário atualizado do array de jogadores para ter o voto mais recente
             const jogadorAtualizado = sala.jogadores.find(j => j.id === usuarioAtual.id);
             if (jogadorAtualizado) {

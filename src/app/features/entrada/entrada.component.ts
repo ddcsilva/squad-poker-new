@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -13,7 +13,7 @@ import { IconesService } from '../../core/services/icones.service';
   imports: [CommonModule, FormsModule],
   templateUrl: './entrada.component.html',
 })
-export class EntradaComponent {
+export class EntradaComponent implements OnInit {
   // Injeção de dependências
   private iconesService = inject(IconesService);
   private salaService = inject(SalaService);
@@ -41,6 +41,16 @@ export class EntradaComponent {
   botaoEntrarHabilitado = computed(
     () => !this.entrandoSala() && this.nomeUsuario().trim() !== '' && this.codigoSala().trim() !== ''
   );
+
+  ngOnInit(): void {
+    // Verificar se há uma mensagem no state do router
+    const navigation = this.router.getCurrentNavigation();
+    const mensagem = navigation?.extras?.state?.['mensagem'];
+
+    if (mensagem) {
+      this.mostrarErro(mensagem);
+    }
+  }
 
   get iconeCarregando(): SafeHtml {
     return this.iconesService.iconeCarregando;
