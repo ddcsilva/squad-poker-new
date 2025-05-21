@@ -1,7 +1,5 @@
 # ♠️ SquadPoker
 
-![Squad Poker Banner](docs/images/logo-banner.png)
-
 [![License](https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-blue)](LICENSE.md)
 [![Angular](https://img.shields.io/badge/Angular-18-red)](https://angular.dev)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC)](https://tailwindcss.com)
@@ -11,7 +9,7 @@
 
 ## 🚀 Demonstração
 
-![SquadPoker em ação](docs/images/demo-screenshot.png)
+[Demo](https://squad-poker.web.app/)
 
 ## ✨ Sobre o Projeto
 
@@ -107,14 +105,14 @@ Contribuições são bem-vindas! Para mudanças importantes:
 
 Note que a licença Commons Clause impede o uso comercial sem autorização.
 
+**Para questões sobre uso comercial ou licenciamento, favor entrar em contato via email.**
+
 ## 📬 Contato
 
 Danilo Silva
 
-- 📧 Email: danilo.silva [at] msn.com
+- 📧 Email: [danilo.silva@msn.com](mailto://danilo.silva@msn.com)
 - 💼 [LinkedIn](https://www.linkedin.com/in/ddcsilva/)
 - 🌐 [GitHub](https://github.com/ddcsilva)
 
 Link do Projeto: [https://github.com/ddcsilva/squad-poker](https://github.com/ddcsilva/squad-poker)
-
-**Para questões sobre uso comercial ou licenciamento, favor entrar em contato via email.**
