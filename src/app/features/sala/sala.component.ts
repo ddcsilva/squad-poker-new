@@ -180,6 +180,14 @@ export class SalaComponent implements OnInit {
       // Se clicou na mesma carta, "desvota"
       const novoValor = usuario.voto === valor ? null : valor;
 
+      if (novoValor !== null) {
+        // Votando: vibração de confirmação
+        this.vibrarDispositivo(50);
+      } else {
+        // Desvotando: vibração mais suave
+        this.vibrarDispositivo(30);
+      }
+
       // Atualizar estado local para feedback visual imediato
       this.cartaSelecionada.set(novoValor);
 
@@ -190,6 +198,9 @@ export class SalaComponent implements OnInit {
         console.error('Erro ao atualizar voto:', error);
         // Resetar estado local em caso de erro para voltar à posição anterior
         this.cartaSelecionada.set(usuario.voto);
+
+        // Feedback que deu problema
+        this.vibrarDispositivo(200); // Vibração mais longa = erro
       }
     }
   }
@@ -351,5 +362,23 @@ export class SalaComponent implements OnInit {
   obterTotalParticipantes(): number {
     if (!this.sala?.jogadores) return 0;
     return this.votacaoService.contarTotalParticipantes(this.sala.jogadores);
+  }
+
+  private vibrarDispositivo(duracao: number): void {
+    // Só tentar vibrar se:
+    // 1. Está em dispositivo móvel
+    // 2. API disponível
+    // 3. Browser suporta
+    if (
+      'vibrate' in navigator &&
+      navigator.vibrate &&
+      /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    ) {
+      try {
+        navigator.vibrate(duracao);
+      } catch (error) {
+        // Fail silently - não loga erro para não poluir console
+      }
+    }
   }
 }
