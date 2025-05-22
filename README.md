@@ -9,7 +9,7 @@
 
 ## 🚀 Demonstração
 
-[Demo](https://squad-poker.web.app/)
+Clique [aqui](https://squad-poker.web.app/) para testar
 
 ## ✨ Sobre o Projeto
 
