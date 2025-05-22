@@ -16,4 +16,8 @@ import { AtualizacaoService } from './core/services/atualizacao.service';
 })
 export class AppComponent {
   private atualizacaoService = inject(AtualizacaoService);
+
+  teste() {
+    console.log('teste');
+  }
 }
