@@ -9,6 +9,7 @@ import { AtualizacaoService } from './core/services/atualizacao.service';
   standalone: true,
   imports: [RouterOutlet, StatusConexaoComponent, AtualizacaoDisponivelComponent],
   template: `
+    Atualização teste
     <router-outlet></router-outlet>
     <app-status-conexao></app-status-conexao>
     <app-atualizacao-disponivel></app-atualizacao-disponivel>
