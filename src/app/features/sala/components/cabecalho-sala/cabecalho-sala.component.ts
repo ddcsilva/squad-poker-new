@@ -28,7 +28,17 @@ export class CabecalhoSalaComponent {
   }
 
   aoCopiarCodigo(): void {
-    this.copiarCodigo.emit();
+    navigator.clipboard
+      .writeText(this.codigoSala)
+      .then(() => {
+        this.vibrarDispositivo(100);
+        this.copiarCodigo.emit();
+      })
+      .catch(error => {
+        this.vibrarDispositivo(200);
+        console.error('Erro ao copiar código:', error);
+        this.mostrarCodigoParaCopia();
+      });
   }
 
   // Método para abrir o modal quando o botão "Sair" é clicado
@@ -58,5 +68,28 @@ export class CabecalhoSalaComponent {
   // Tipo de botão para o modal
   obterTipoBotaoSair(): 'primario' | 'perigo' | 'sucesso' {
     return this.ehDono ? 'perigo' : 'primario';
+  }
+
+  private vibrarDispositivo(duracao: number): void {
+    if (
+      'vibrate' in navigator &&
+      navigator.vibrate &&
+      /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    ) {
+      try {
+        navigator.vibrate(duracao);
+      } catch (error) {
+        // Fail silently
+      }
+    }
+  }
+
+  private mostrarCodigoParaCopia(): void {
+    const textoTemp = document.createElement('textarea');
+    textoTemp.value = `Squad Poker - Código da Sala: ${this.codigoSala}`;
+    document.body.appendChild(textoTemp);
+    textoTemp.select();
+    document.body.removeChild(textoTemp);
+    alert(`📋 Código da sala: ${this.codigoSala}`);
   }
 }

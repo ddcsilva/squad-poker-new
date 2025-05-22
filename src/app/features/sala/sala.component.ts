@@ -377,7 +377,7 @@ export class SalaComponent implements OnInit {
       try {
         navigator.vibrate(duracao);
       } catch (error) {
-        // Fail silently - não loga erro para não poluir console
+        // Fail silently
       }
     }
   }
