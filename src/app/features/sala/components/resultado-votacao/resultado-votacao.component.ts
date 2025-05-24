@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Usuario } from '../../../../core/models/usuario.model';
 import { SafeHtml } from '@angular/platform-browser';
 import { IconesService } from '../../../../core/services/icones.service';
+import { VotoValidators } from '../../../../core/validators/voto.validators';
 
 @Component({
   selector: 'app-resultado-votacao',
@@ -62,7 +63,17 @@ export class ResultadoVotacaoComponent {
   }
 
   aoPontuacaoFinalMudada(event: Event): void {
+    // 1. Obter o valor do input
     const input = event.target as HTMLInputElement;
-    this.pontuacaoFinalMudou.emit(input.value);
+
+    // 2. Validar o valor
+    const resultadoValidacao = VotoValidators.validarPontuacaoFinal(input.value);
+
+    // 3. Emitir o valor se for válido
+    if (resultadoValidacao.valido) {
+      this.pontuacaoFinalMudou.emit(resultadoValidacao.valorSanitizado || '');
+    } else {
+      console.warn('Pontuação inválida:', resultadoValidacao.erro);
+    }
   }
 }

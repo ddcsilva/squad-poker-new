@@ -6,6 +6,7 @@ import { SalaService } from '../../core/services/sala.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { SafeHtml } from '@angular/platform-browser';
 import { IconesService } from '../../core/services/icones.service';
+import { SalaValidators } from '../../core/validators/sala.validators';
 
 @Component({
   selector: 'app-entrada',
@@ -14,26 +15,21 @@ import { IconesService } from '../../core/services/icones.service';
   templateUrl: './entrada.component.html',
 })
 export class EntradaComponent implements OnInit {
-  // Injeção de dependências
   private iconesService = inject(IconesService);
   private salaService = inject(SalaService);
   private usuarioService = inject(UsuarioService);
   private router = inject(Router);
 
-  // Estados primários com Signals
   modo = signal<'criar' | 'entrar'>('criar');
   nomeUsuario = signal<string>('');
   tipoUsuario = signal<'participante' | 'espectador'>('participante');
   descricaoSala = signal<string>('');
   codigoSala = signal<string>('');
-
-  // Estado de UI
   criandoSala = signal<boolean>(false);
   entrandoSala = signal<boolean>(false);
   erroMensagem = signal<string | null>(null);
-  tempoErroExibicao = 4000; // 4 segundos
+  tempoErroExibicao = 4000;
 
-  // Estados computados (derivados)
   botaoCriarHabilitado = computed(
     () => !this.criandoSala() && this.nomeUsuario().trim() !== '' && this.descricaoSala().trim() !== ''
   );
@@ -42,8 +38,11 @@ export class EntradaComponent implements OnInit {
     () => !this.entrandoSala() && this.nomeUsuario().trim() !== '' && this.codigoSala().trim() !== ''
   );
 
+  get iconeCarregando(): SafeHtml {
+    return this.iconesService.iconeCarregando;
+  }
+
   ngOnInit(): void {
-    // Verificar se há uma mensagem no state do router
     const navigation = this.router.getCurrentNavigation();
     const mensagem = navigation?.extras?.state?.['mensagem'];
 
@@ -52,11 +51,6 @@ export class EntradaComponent implements OnInit {
     }
   }
 
-  get iconeCarregando(): SafeHtml {
-    return this.iconesService.iconeCarregando;
-  }
-
-  // Métodos para manipular o estado
   alternarModo(novoModo: 'criar' | 'entrar'): void {
     this.modo.set(novoModo);
   }
@@ -80,38 +74,40 @@ export class EntradaComponent implements OnInit {
     this.codigoSala.set(input.value);
   }
 
-  // Método para exibir mensagens de erro
   mostrarErro(mensagem: string): void {
     this.erroMensagem.set(mensagem);
-    // Esconder depois de um tempo
     setTimeout(() => {
       this.erroMensagem.set(null);
     }, this.tempoErroExibicao);
   }
 
-  // Ações principais
   async criarSala(): Promise<void> {
     if (this.botaoCriarHabilitado()) {
       try {
-        // Ativar indicador de carregamento
         this.criandoSala.set(true);
 
-        // Criar a sala usando o serviço
-        const sala = await this.salaService.criarSala(this.nomeUsuario(), this.descricaoSala(), this.tipoUsuario());
+        const resultadoValidacao = SalaValidators.validarEntradaCriarSala({
+          nome: this.nomeUsuario(),
+          descricao: this.descricaoSala(),
+          tipo: this.tipoUsuario(),
+        });
 
-        // Recuperar o usuário criado (primeiro jogador da sala)
+        if (!resultadoValidacao.valido) {
+          this.mostrarErro(resultadoValidacao.erros[0]);
+          return;
+        }
+
+        const dadosSeguros = resultadoValidacao.dadosSanitizados!;
+        const sala = await this.salaService.criarSala(dadosSeguros.nome, dadosSeguros.descricao, dadosSeguros.tipo);
         const usuario = sala.jogadores[0];
 
-        // Salvar este usuário localmente
         this.usuarioService.definirUsuario(usuario);
 
-        // Navegar para a sala
         this.router.navigate(['/sala', sala.id]);
       } catch (error: any) {
         console.error('Erro ao criar sala:', error);
         this.mostrarErro(error.message || 'Erro ao criar sala');
       } finally {
-        // Desativar indicador de carregamento
         this.criandoSala.set(false);
       }
     }
@@ -120,25 +116,30 @@ export class EntradaComponent implements OnInit {
   async entrarEmSala(): Promise<void> {
     if (this.botaoEntrarHabilitado()) {
       try {
-        // Ativar indicador de carregamento
         this.entrandoSala.set(true);
 
-        // Tenta entrar na sala
-        const sala = await this.salaService.entrarEmSala(this.codigoSala(), this.nomeUsuario(), this.tipoUsuario());
+        const resultadoValidacao = SalaValidators.validarEntradaEntrarSala({
+          nome: this.nomeUsuario(),
+          codigo: this.codigoSala(),
+          tipo: this.tipoUsuario(),
+        });
 
-        // Encontra o usuário recém-adicionado (último da lista)
+        if (!resultadoValidacao.valido) {
+          this.mostrarErro(resultadoValidacao.erros[0]);
+          return;
+        }
+
+        const dadosSeguros = resultadoValidacao.dadosSanitizados!;
+        const sala = await this.salaService.entrarEmSala(dadosSeguros.codigo, dadosSeguros.nome, dadosSeguros.tipo);
         const usuario = sala.jogadores[sala.jogadores.length - 1];
 
-        // Salvar no UsuarioService
         this.usuarioService.definirUsuario(usuario);
 
-        // Navegar para a sala
         this.router.navigate(['/sala', sala.id]);
       } catch (error: any) {
         console.error('Erro ao entrar na sala:', error);
         this.mostrarErro(error.message || 'Erro ao entrar na sala');
       } finally {
-        // Desativar carregamento
         this.entrandoSala.set(false);
       }
     }

@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { SALA_REPOSITORY } from '../repositories/sala-repository.token';
 import { ISalaRepository } from '../interfaces/sala-repository.interface';
 import { VotacaoService } from './votacao.service';
+import { SalaValidators } from '../validators/sala.validators';
+import { VotoValidators } from '../validators/voto.validators';
 import {
   JogadorNaoEncontradoError,
   SalaEncerradaError,
@@ -26,22 +28,32 @@ export class SalaService {
    * Cria uma nova sala no repositório
    */
   async criarSala(nomeDono: string, descricao: string, tipoUsuario: 'participante' | 'espectador'): Promise<Sala> {
-    this.validarCamposObrigatorios({ nomeDono, descricao });
+    const resultadoValidacao = SalaValidators.validarEntradaCriarSala({
+      nome: nomeDono,
+      descricao: descricao,
+      tipo: tipoUsuario,
+    });
+
+    if (!resultadoValidacao.valido) {
+      throw new OperacaoInvalidaError(`Dados inválidos: ${resultadoValidacao.erros.join(', ')}`);
+    }
+
+    const dadosSegura = resultadoValidacao.dadosSanitizados!;
 
     // 1. Criar o objeto do usuário dono
     const usuario: Usuario = {
       id: uuidv4(),
-      nome: nomeDono,
+      nome: dadosSegura.nome,
       voto: null,
       cor: this.gerarCorAleatoria(),
-      tipo: tipoUsuario,
+      tipo: dadosSegura.tipo as 'participante' | 'espectador',
     };
 
     // 2. Criar o objeto da sala
     const novaSala: Sala = {
       id: uuidv4(),
-      nomeDono,
-      descricaoVotacao: descricao,
+      nomeDono: dadosSegura.nome,
+      descricaoVotacao: dadosSegura.descricao,
       jogadores: [usuario],
       status: 'aguardando',
       votosRevelados: false,
@@ -68,14 +80,24 @@ export class SalaService {
     nomeUsuario: string,
     tipoUsuario: 'participante' | 'espectador'
   ): Promise<Sala> {
-    this.validarCamposObrigatorios({ codigoSala, nomeUsuario });
+    const resultadoValidacao = SalaValidators.validarEntradaEntrarSala({
+      nome: nomeUsuario,
+      codigo: codigoSala,
+      tipo: tipoUsuario,
+    });
+
+    if (!resultadoValidacao.valido) {
+      throw new OperacaoInvalidaError(`Dados inválidos: ${resultadoValidacao.erros.join(', ')}`);
+    }
+
+    const dadosSeguros = resultadoValidacao.dadosSanitizados!;
 
     // 1. Buscar a sala pelo código usando o repositório
-    const sala = await this.salaRepository.buscarPorId(codigoSala);
+    const sala = await this.salaRepository.buscarPorId(dadosSeguros.codigo);
 
     // 2. Verificar se a sala existe
     if (!sala) {
-      throw new SalaNaoEncontradaError(codigoSala);
+      throw new SalaNaoEncontradaError(dadosSeguros.codigo);
     }
 
     // 3. Verificar se a sala está ativa
@@ -86,10 +108,10 @@ export class SalaService {
     // 4. Criar novo usuário
     const novoUsuario: Usuario = {
       id: uuidv4(),
-      nome: nomeUsuario,
+      nome: dadosSeguros.nome,
       voto: null,
       cor: this.gerarCorAleatoria(),
-      tipo: tipoUsuario,
+      tipo: dadosSeguros.tipo as 'participante' | 'espectador',
     };
 
     // 5. Adicionar à lista de jogadores
@@ -124,23 +146,37 @@ export class SalaService {
    * Registra o voto de um jogador
    */
   async registrarVoto(salaId: string, jogadorId: string, voto: string | null): Promise<void> {
-    this.validarCamposObrigatorios({ salaId, jogadorId });
+    // 1. Validar o voto
+    const resultadoValidacao = VotoValidators.validarVoto(voto);
 
-    // 1. Obter e validar a sala atual
+    // 2. Validar os IDs
+    if (!resultadoValidacao.valido) {
+      throw new OperacaoInvalidaError(`Voto inválido: ${resultadoValidacao.erro}`);
+    }
+
+    if (!salaId || typeof salaId !== 'string' || !/^[a-zA-Z0-9-]+$/.test(salaId)) {
+      throw new OperacaoInvalidaError('ID da sala inválido');
+    }
+
+    if (!jogadorId || typeof jogadorId !== 'string' || !/^[a-zA-Z0-9-]+$/.test(jogadorId)) {
+      throw new OperacaoInvalidaError('ID do jogador inválido');
+    }
+
+    // 3. Obter e validar a sala atual
     const sala = this.obterESalaValidar(salaId);
 
-    // 2. Encontrar o jogador
+    // 4. Encontrar o jogador
     const jogador = this.encontrarJogadorOuErro(sala, jogadorId);
 
-    // Verificar se a votação está aberta
+    // 5. Verificar se a votação está aberta
     if (sala.votosRevelados) {
       throw new OperacaoInvalidaError('Não é possível votar enquanto os votos estão revelados');
     }
 
-    // 3. Registrar o voto
-    jogador.voto = voto;
+    // 6. Registrar o voto sanitizado
+    jogador.voto = resultadoValidacao.valorSanitizado!;
 
-    // 4. Salvar no repositório
+    // 7. Salvar no repositório
     await this.salaRepository.salvar(sala);
   }
 
@@ -148,20 +184,21 @@ export class SalaService {
    * Revela os votos da rodada atual
    */
   async revelarVotos(salaId: string): Promise<void> {
+    // 1. Validar campos obrigatórios
     this.validarCamposObrigatorios({ salaId });
 
-    // Obter e validar a sala
+    // 2. Obter e validar a sala
     const sala = this.obterESalaValidar(salaId);
 
-    // Verificar se os votos já estão revelados
+    // 3. Verificar se os votos já estão revelados
     if (sala.votosRevelados) {
-      return; // Já está revelado, não faz nada
+      return;
     }
 
-    // Atualizar estado
+    // 4. Atualizar estado
     sala.votosRevelados = true;
 
-    // Salvar no repositório
+    // 5. Salvar no repositório
     await this.salaRepository.salvar(sala);
   }
 
@@ -169,25 +206,26 @@ export class SalaService {
    * Oculta os votos e reinicia a votação da rodada atual
    */
   async ocultarVotos(salaId: string): Promise<void> {
+    // 1. Validar campos obrigatórios
     this.validarCamposObrigatorios({ salaId });
 
-    // Obter e validar a sala
+    // 2. Obter e validar a sala
     const sala = this.obterESalaValidar(salaId);
 
-    // Verificar se os votos já estão ocultos
+    // 3. Verificar se os votos já estão ocultos
     if (!sala.votosRevelados) {
-      return; // Já está oculto, não faz nada
+      return;
     }
 
-    // Ocultar votos
+    // 4. Ocultar votos
     sala.votosRevelados = false;
 
-    // Limpar votos de todos os jogadores
+    // 5. Limpar votos de todos os jogadores
     sala.jogadores.forEach(jogador => {
       jogador.voto = null;
     });
 
-    // Salvar no repositório
+    // 6. Salvar no repositório
     await this.salaRepository.salvar(sala);
   }
 
@@ -195,33 +233,49 @@ export class SalaService {
    * Inicia uma nova rodada de votação
    */
   async iniciarNovaRodada(salaId: string, descricaoNova: string, pontuacaoFinal: string): Promise<void> {
-    this.validarCamposObrigatorios({ salaId, descricaoNova });
+    // 1. Validar os dados da rodada
+    const resultadoValidacao = VotoValidators.validarDadosRodada({
+      descricao: descricaoNova,
+      pontuacaoFinal: pontuacaoFinal,
+    });
 
-    // Obter e validar a sala
+    // 2. Validar o ID da sala
+    if (!resultadoValidacao.valido) {
+      throw new OperacaoInvalidaError(`Dados da rodada inválidos: ${resultadoValidacao.erros.join(', ')}`);
+    }
+
+    // 3. Validar o ID da sala
+    if (!salaId || typeof salaId !== 'string' || !/^[a-zA-Z0-9-]+$/.test(salaId)) {
+      throw new OperacaoInvalidaError('ID da sala inválido');
+    }
+
+    const dadosSegura = resultadoValidacao.dadosSanitizados!;
+
+    // 4. Obter e validar a sala
     const sala = this.obterESalaValidar(salaId);
 
-    // Verificar se a sala está ativa
+    // 5. Verificar se a sala está ativa
     if (sala.status === 'encerrada') {
       throw new SalaEncerradaError();
     }
 
-    // Salvar a rodada atual no histórico (apenas se os votos estiverem revelados)
+    // 6. Salvar a rodada atual no histórico (apenas se os votos estiverem revelados)
     if (sala.votosRevelados) {
-      const rodadaAtual = this.criarHistoricoRodada(sala, pontuacaoFinal);
+      const rodadaAtual = this.criarHistoricoRodada(sala, dadosSegura.pontuacaoFinal || ''); // 🔄 Era: pontuacaoFinal
       sala.historicoRodadas.push(rodadaAtual);
     }
 
-    // Atualizar rodada e limpar votos
+    // 7. Atualizar rodada e limpar votos
     sala.rodadaAtual++;
-    sala.descricaoVotacao = descricaoNova;
+    sala.descricaoVotacao = dadosSegura.descricao; // 🔄 Era: descricaoNova
     sala.votosRevelados = false;
 
-    // Limpar votos de todos os jogadores
+    // 8. Limpar votos de todos os jogadores
     sala.jogadores.forEach(jogador => {
       jogador.voto = null;
     });
 
-    // Salvar no repositório
+    // 9. Salvar no repositório
     await this.salaRepository.salvar(sala);
   }
 
@@ -229,25 +283,36 @@ export class SalaService {
    * Encerra uma sala permanentemente
    */
   async encerrarSala(salaId: string, pontuacaoFinal?: string): Promise<void> {
-    this.validarCamposObrigatorios({ salaId });
+    // 1. Validar o ID da sala
+    if (!salaId || typeof salaId !== 'string' || !/^[a-zA-Z0-9-]+$/.test(salaId)) {
+      throw new OperacaoInvalidaError('ID da sala inválido');
+    }
 
-    // Obter e validar a sala
+    // 2. Validar a pontuação final
+    if (pontuacaoFinal !== undefined) {
+      const resultadoValidacao = VotoValidators.validarPontuacaoFinal(pontuacaoFinal);
+      if (!resultadoValidacao.valido) {
+        throw new OperacaoInvalidaError(`Pontuação final inválida: ${resultadoValidacao.erro}`);
+      }
+      pontuacaoFinal = resultadoValidacao.valorSanitizado;
+    }
+
+    // 3. Obter e validar a sala
     const sala = this.obterESalaValidar(salaId);
 
-    // Verificar se a sala já está encerrada
+    // 4. Verificar se a sala já está encerrada
     if (sala.status === 'encerrada') {
       return; // Já está encerrada, não faz nada
     }
 
-    // Salvar a rodada atual no histórico se os votos estiverem revelados
+    // 5. Salvar a rodada atual no histórico se os votos estiverem revelados
     if (sala.votosRevelados) {
-      // Usar a pontuação passada como parâmetro OU calcular automaticamente
       const valorFinal = pontuacaoFinal || this.calcularMaisVotado(sala.jogadores);
       const rodadaAtual = this.criarHistoricoRodada(sala, valorFinal);
       sala.historicoRodadas.push(rodadaAtual);
     }
 
-    // Encerrar a sala
+    // 6. Encerrar a sala
     sala.status = 'encerrada';
     await this.salaRepository.salvar(sala);
   }
@@ -256,20 +321,27 @@ export class SalaService {
    * Remove um jogador da sala e salva as alterações
    */
   async removerJogador(salaId: string, jogadorId: string): Promise<void> {
-    this.validarCamposObrigatorios({ salaId, jogadorId });
+    // 1. Validar os IDs
+    if (!salaId || typeof salaId !== 'string' || !/^[a-zA-Z0-9-]+$/.test(salaId)) {
+      throw new OperacaoInvalidaError('ID da sala inválido');
+    }
 
-    // Obter e validar a sala
+    if (!jogadorId || typeof jogadorId !== 'string' || !/^[a-zA-Z0-9-]+$/.test(jogadorId)) {
+      throw new OperacaoInvalidaError('ID do jogador inválido');
+    }
+
+    // 2. Obter e validar a sala
     const sala = this.obterESalaValidar(salaId);
 
-    // Verificar se o jogador existe na sala
+    // 3. Verificar se o jogador existe na sala
     if (!sala.jogadores.some(j => j.id === jogadorId)) {
       throw new JogadorNaoEncontradoError(jogadorId);
     }
 
-    // Remover o jogador
+    // 4. Remover o jogador
     sala.jogadores = sala.jogadores.filter(j => j.id !== jogadorId);
 
-    // Salvar no repositório
+    // 5. Salvar no repositório
     await this.salaRepository.salvar(sala);
   }
 

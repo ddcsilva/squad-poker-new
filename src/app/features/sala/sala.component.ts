@@ -17,6 +17,7 @@ import { ResultadoVotacaoComponent } from './components/resultado-votacao/result
 import { SalaPainelModeracaoComponent } from './components/sala-painel-moderacao/sala-painel-moderacao.component';
 import { SalaRemoverParticipanteModalComponent } from './components/sala-remover-participante-modal/sala-remover-participante-modal.component';
 import { VotacaoService } from '../../core/services/votacao.service';
+import { VotoValidators } from '../../core/validators/voto.validators';
 
 @Component({
   selector: 'app-sala',
@@ -167,40 +168,53 @@ export class SalaComponent implements OnInit {
     });
   }
 
-  // Método para registrar voto (com suporte a "desvotar")
+  /**
+   * Método para registrar voto (com suporte a "desvotar")
+   */
   async votar(valor: string): Promise<void> {
+    // 1. Validar a existência da sala e do usuário
     if (!this.sala || !this.usuarioService.usuarioAtual()) {
       return;
     }
 
+    // 2. Obter o usuário atual
     const usuario = this.usuarioService.usuarioAtual()!;
 
-    // Apenas participantes podem votar, não espectadores
+    // 3. Apenas participantes podem votar, não espectadores
     if (usuario.tipo === 'participante') {
-      // Se clicou na mesma carta, "desvota"
+      // 4. Se clicou na mesma carta, "desvota"
       const novoValor = usuario.voto === valor ? null : valor;
 
+      // 5. Validar o voto
+      const resultadoValidacao = VotoValidators.validarVoto(novoValor);
+
+      if (!resultadoValidacao.valido) {
+        console.error('Voto inválido:', resultadoValidacao.erro);
+        this.vibrarDispositivo(200);
+        return;
+      }
+
       if (novoValor !== null) {
-        // Votando: vibração de confirmação
+        // 6. Votando: vibração de confirmação
         this.vibrarDispositivo(50);
       } else {
-        // Desvotando: vibração mais suave
+        // 7. Desvotando: vibração mais suave
         this.vibrarDispositivo(30);
       }
 
-      // Atualizar estado local para feedback visual imediato
-      this.cartaSelecionada.set(novoValor);
+      // 8. Atualizar estado local para feedback visual imediato
+      this.cartaSelecionada.set(resultadoValidacao.valorSanitizado ?? null);
 
       try {
-        // Registrar voto (ou limpar voto)
-        await this.salaService.registrarVoto(this.salaId, usuario.id, novoValor);
+        // 9. Registrar voto (ou limpar voto) com valor sanitizado
+        await this.salaService.registrarVoto(this.salaId, usuario.id, resultadoValidacao.valorSanitizado ?? null);
       } catch (error) {
         console.error('Erro ao atualizar voto:', error);
-        // Resetar estado local em caso de erro para voltar à posição anterior
+        // 10. Resetar estado local em caso de erro para voltar à posição anterior
         this.cartaSelecionada.set(usuario.voto);
 
-        // Feedback que deu problema
-        this.vibrarDispositivo(200); // Vibração mais longa = erro
+        // 11. Feedback que deu problema
+        this.vibrarDispositivo(200);
       }
     }
   }
@@ -237,18 +251,38 @@ export class SalaComponent implements OnInit {
     }
   }
 
-  // Método para iniciar nova rodada
+  /**
+   * Método para iniciar nova rodada
+   */
   async iniciarNovaRodada(): Promise<void> {
+    // 1. Validar se o usuário é dono da sala e se a descrição da rodada está preenchida
     if (!this.ehDonoDaSala() || !this.descricaoNovaRodada()) {
       return;
     }
 
     try {
+      // 2. Iniciar o processo de criação da nova rodada
       this.criandoNovaRodada.set(true);
 
-      await this.salaService.iniciarNovaRodada(this.salaId, this.descricaoNovaRodada(), this.pontuacaoFinal());
+      // 3. Validar os dados antes de iniciar a nova rodada
+      const resultadoValidacao = VotoValidators.validarDadosRodada({
+        descricao: this.descricaoNovaRodada(),
+        pontuacaoFinal: this.pontuacaoFinal(),
+      });
 
-      // Limpar formulário após sucesso
+      // 4. Se os dados não forem válidos, exibir erro e sair
+      if (!resultadoValidacao.valido) {
+        console.error('Dados inválidos:', resultadoValidacao.erros);
+        return;
+      }
+
+      // 5. Sanitizar os dados
+      const dadosSegura = resultadoValidacao.dadosSanitizados!;
+
+      // 6. Iniciar a nova rodada com os dados sanitizados
+      await this.salaService.iniciarNovaRodada(this.salaId, dadosSegura.descricao, dadosSegura.pontuacaoFinal || '');
+
+      // 7. Limpar formulário após sucesso
       this.descricaoNovaRodada.set('');
       this.pontuacaoFinal.set('');
     } catch (error) {
@@ -264,7 +298,15 @@ export class SalaComponent implements OnInit {
   }
 
   atualizarPontuacaoFinal(valor: string): void {
-    this.pontuacaoFinal.set(valor);
+    // 1. Validação em tempo real
+    const resultadoValidacao = VotoValidators.validarPontuacaoFinal(valor);
+
+    // 2. Atualizar o valor se for válido
+    if (resultadoValidacao.valido) {
+      this.pontuacaoFinal.set(resultadoValidacao.valorSanitizado || '');
+    } else {
+      console.warn('Pontuação inválida:', resultadoValidacao.erro);
+    }
   }
 
   // Método para verificar se o usuário é dono da sala
