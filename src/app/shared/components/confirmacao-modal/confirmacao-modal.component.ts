@@ -20,6 +20,10 @@ export class ConfirmacaoModalComponent {
   @Output() cancelar = new EventEmitter<void>();
   @Output() fechar = new EventEmitter<void>();
 
+  // IDs únicos para acessibilidade
+  readonly tituloId = `modal-titulo-${Math.random().toString(36).substr(2, 9)}`;
+  readonly descricaoId = `modal-descricao-${Math.random().toString(36).substr(2, 9)}`;
+
   obterClasseBotaoConfirmar(): string {
     const base = 'w-full sm:w-auto px-4 py-2 text-white rounded-md transition-colors sm:order-2';
 
