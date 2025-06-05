@@ -4,14 +4,42 @@
   (click)="fecharModal()">
   <div
     class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4 transform transition-all"
-    (click)="$event.stopPropagation()">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-medium text-gray-800">{{ titulo }}</h3>
-      <button class="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100" (click)="fecharModal()">
+    (click)="$event.stopPropagation()"
+    cdkTrapFocus
+    cdkTrapFocusAutoCapture
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="titulo ? tituloId : null"
+    [attr.aria-describedby]="descricao ? descricaoId : null"
+    [attr.aria-label]="!titulo ? 'Modal' : null">
+    <!-- Cabeçalho (apenas se houver título) -->
+    <div *ngIf="titulo" class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-medium text-gray-800" [id]="tituloId">{{ titulo }}</h3>
+      <button
+        class="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+        (click)="fecharModal()"
+        aria-label="Fechar modal"
+        type="button">
         <span [innerHTML]="iconeFechar"></span>
       </button>
     </div>
-    <div>
+
+    <!-- Botão de fechar para modais sem título -->
+    <div *ngIf="!titulo" class="flex justify-end mb-2">
+      <button
+        class="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-colors"
+        (click)="fecharModal()"
+        aria-label="Fechar modal"
+        type="button">
+        <span [innerHTML]="iconeFechar"></span>
+      </button>
+    </div>
+
+    <!-- Descrição opcional (para screen readers) -->
+    <div *ngIf="descricao" class="sr-only" [id]="descricaoId">{{ descricao }}</div>
+
+    <!-- Conteúdo dinâmico -->
+    <div role="main">
       <ng-content></ng-content>
     </div>
   </div>
