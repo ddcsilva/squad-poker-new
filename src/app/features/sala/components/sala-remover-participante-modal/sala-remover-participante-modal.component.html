@@ -1,11 +1,12 @@
 <app-confirmacao-modal
+  #modalConfirmacao
   [visivel]="visivel"
-  titulo="Remover Participante"
-  mensagem="Tem certeza que deseja remover este participante da sala?"
+  titulo="⚠️ Remover Participante"
+  [mensagem]="mensagemPersonalizada"
   textoBotaoConfirmar="Sim, remover"
   textoBotaoCancelar="Cancelar"
   tipoBotaoConfirmar="perigo"
-  (confirmar)="confirmar.emit()"
-  (cancelar)="cancelar.emit()"
-  (fechar)="fechar.emit()">
+  (confirmar)="aoConfirmar()"
+  (cancelar)="aoCancelar()"
+  (fechar)="aoFechar()">
 </app-confirmacao-modal>
