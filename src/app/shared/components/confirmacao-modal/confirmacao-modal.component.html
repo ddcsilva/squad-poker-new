@@ -5,6 +5,8 @@
   <div
     class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden"
     (click)="$event.stopPropagation()"
+    cdkTrapFocus
+    cdkTrapFocusAutoCapture
     role="dialog"
     aria-modal="true"
     [attr.aria-labelledby]="tituloId"

@@ -10,7 +10,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { A11yModule, FocusMonitor, FocusTrap, FocusTrapFactory } from '@angular/cdk/a11y';
+import { A11yModule, FocusMonitor, FocusTrap, FocusTrapFactory, LiveAnnouncer } from '@angular/cdk/a11y';
 
 @Component({
   selector: 'app-confirmacao-modal',
@@ -38,7 +38,11 @@ export class ConfirmacaoModalComponent implements OnInit, OnDestroy, OnChanges {
   private elementoAtivoAnterior: HTMLElement | null = null;
   private focusTrap: FocusTrap | null = null;
 
-  constructor(private focusMonitor: FocusMonitor, private focusTrapFactory: FocusTrapFactory) {}
+  constructor(
+    private focusMonitor: FocusMonitor,
+    private focusTrapFactory: FocusTrapFactory,
+    private liveAnnouncer: LiveAnnouncer
+  ) {}
 
   @HostListener('keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
@@ -140,13 +144,22 @@ export class ConfirmacaoModalComponent implements OnInit, OnDestroy, OnChanges {
     // Bloquear scroll do body
     document.body.style.overflow = 'hidden';
 
+    // Anunciar abertura do modal para screen readers
+    this.anunciarAberturaModal();
+
     // Aguardar o próximo ciclo de detecção para o modal estar renderizado
     setTimeout(() => {
       this.capturarFocoNoModal();
-    });
+      this.lerTituloEDescricaoAutomaticamente();
+    }, 100);
   }
 
   private aoFecharModal(): void {
+    // Anunciar fechamento quando apropriado
+    if (this.visivel) {
+      this.anunciarFechamentoModal();
+    }
+
     // Restaurar foco ao elemento original
     if (this.elementoAtivoAnterior) {
       this.focusMonitor.focusVia(this.elementoAtivoAnterior, 'program');
@@ -166,7 +179,7 @@ export class ConfirmacaoModalComponent implements OnInit, OnDestroy, OnChanges {
   private capturarFocoNoModal(): void {
     const modalElement = document.querySelector('[role="dialog"]') as HTMLElement;
     if (modalElement) {
-      // Criar focus trap
+      // Criar focus trap (além do CDK automático para controle adicional)
       this.focusTrap = this.focusTrapFactory.create(modalElement);
 
       // Ativar o focus trap e focar no primeiro elemento
@@ -178,6 +191,34 @@ export class ConfirmacaoModalComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
   }
+
+  // ========== 3.1.4 Screen Reader Support ==========
+
+  private anunciarAberturaModal(): void {
+    // Anunciar abertura do modal
+    const mensagemAbertura = `Modal de confirmação aberto: ${this.titulo}`;
+    this.liveAnnouncer.announce(mensagemAbertura, 'assertive');
+  }
+
+  private lerTituloEDescricaoAutomaticamente(): void {
+    // Ler título e descrição automaticamente
+    setTimeout(() => {
+      const conteudoCompleto = `${this.titulo}. ${this.mensagem}. Use Tab para navegar entre as opções.`;
+      this.liveAnnouncer.announce(conteudoCompleto, 'polite');
+    }, 500);
+  }
+
+  private anunciarFechamentoModal(): void {
+    // Anunciar fechamento quando apropriado
+    this.liveAnnouncer.announce('Modal de confirmação fechado', 'polite');
+  }
+
+  private anunciarAcaoRealizada(acao: string): void {
+    // Anunciar ação realizada (confirmar/cancelar)
+    this.liveAnnouncer.announce(`Ação realizada: ${acao}`, 'assertive');
+  }
+
+  // ========== Métodos de Ação Atualizados ==========
 
   obterClasseBotaoConfirmar(): string {
     const base = 'w-full sm:w-auto px-4 py-2 text-white rounded-md transition-colors sm:order-2';
@@ -192,10 +233,12 @@ export class ConfirmacaoModalComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   aoConfirmar(): void {
+    this.anunciarAcaoRealizada('Confirmado');
     this.confirmar.emit();
   }
 
   aoCancelar(): void {
+    this.anunciarAcaoRealizada('Cancelado');
     this.cancelar.emit();
   }
 
