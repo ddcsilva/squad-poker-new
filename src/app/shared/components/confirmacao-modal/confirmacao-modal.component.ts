@@ -1,4 +1,14 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnInit,
+  OnDestroy,
+  OnChanges,
+  SimpleChanges,
+  HostListener,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { A11yModule, FocusMonitor, FocusTrap, FocusTrapFactory } from '@angular/cdk/a11y';
 
@@ -28,10 +38,82 @@ export class ConfirmacaoModalComponent implements OnInit, OnDestroy, OnChanges {
   private elementoAtivoAnterior: HTMLElement | null = null;
   private focusTrap: FocusTrap | null = null;
 
-  constructor(
-    private focusMonitor: FocusMonitor,
-    private focusTrapFactory: FocusTrapFactory
-  ) {}
+  constructor(private focusMonitor: FocusMonitor, private focusTrapFactory: FocusTrapFactory) {}
+
+  @HostListener('keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (!this.visivel) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'Escape':
+        this.handleEscapeKey(event);
+        break;
+      case 'Tab':
+        this.handleTabKey(event);
+        break;
+      case 'Enter':
+        this.handleEnterKey(event);
+        break;
+      case ' ':
+      case 'Space':
+        this.handleSpaceKey(event);
+        break;
+    }
+  }
+
+  private handleEscapeKey(event: KeyboardEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.aoFechar();
+  }
+
+  private handleTabKey(event: KeyboardEvent): void {
+    // O FocusTrap do Angular CDK já gerencia Tab e Shift+Tab automaticamente
+    // quando está ativo, mantendo o foco dentro do modal.
+    // Este método é mantido para casos especiais ou debugging.
+
+    if (!this.focusTrap || !this.focusTrap.hasAttached()) {
+      // Se o focus trap não estiver ativo, não interferimos na navegação
+      return;
+    }
+
+    // Deixar o CDK FocusTrap gerenciar a navegação por Tab
+    // O comportamento padrão já mantém o foco dentro do modal
+  }
+
+  private handleEnterKey(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement;
+
+    if (target.tagName === 'BUTTON') {
+      // Se já está em um botão, deixa o comportamento padrão
+      return;
+    }
+
+    // Se não está em um botão, ativa o botão de confirmar
+    event.preventDefault();
+    this.aoConfirmar();
+  }
+
+  private handleSpaceKey(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement;
+
+    if (target.tagName === 'BUTTON') {
+      // Se já está em um botão, deixa o comportamento padrão
+      return;
+    }
+
+    // Se não está em um botão, ativa o botão focado ou o de confirmar
+    event.preventDefault();
+    const focusedButton = document.activeElement as HTMLButtonElement;
+
+    if (focusedButton && focusedButton.tagName === 'BUTTON') {
+      focusedButton.click();
+    } else {
+      this.aoConfirmar();
+    }
+  }
 
   ngOnInit(): void {
     // Configuração inicial se necessário
@@ -86,7 +168,14 @@ export class ConfirmacaoModalComponent implements OnInit, OnDestroy, OnChanges {
     if (modalElement) {
       // Criar focus trap
       this.focusTrap = this.focusTrapFactory.create(modalElement);
+
+      // Ativar o focus trap e focar no primeiro elemento
       this.focusTrap.focusFirstTabbableElement();
+
+      // Garantir que o trap está ativo
+      if (!this.focusTrap.hasAttached()) {
+        this.focusTrap.attachAnchors();
+      }
     }
   }
 
