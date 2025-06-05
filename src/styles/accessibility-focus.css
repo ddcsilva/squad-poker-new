@@ -1,0 +1,284 @@
+/* ===================================================================
+   INDICADORES DE FOCO PERSONALIZADOS
+   Estilos para acessibilidade com distinção mouse/teclado
+   =================================================================== */
+
+/* ===== RESET E BASE ===== */
+
+/* Remove outline padrão apenas quando não estiver navegando por teclado */
+:not(.js-focus-visible) :focus:not(.focus-visible) {
+  outline: none;
+}
+
+/* Reset para elementos específicos */
+button:focus:not(.focus-visible),
+input:focus:not(.focus-visible),
+select:focus:not(.focus-visible),
+textarea:focus:not(.focus-visible),
+[tabindex]:focus:not(.focus-visible) {
+  outline: none;
+}
+
+/* ===== FOCO VIA TECLADO ===== */
+
+/* Outline principal para navegação por teclado */
+.focus-visible,
+:focus-visible {
+  outline: 3px solid var(--focus-primary-color, #2563eb) !important;
+  outline-offset: 2px !important;
+  border-radius: 4px;
+  transition: outline-color 0.2s ease, outline-width 0.2s ease, box-shadow 0.2s ease !important;
+  position: relative;
+}
+
+/* Foco com anel duplo para maior visibilidade */
+.focus-visible-enhanced,
+.enhanced-focus:focus-visible {
+  outline: 3px solid var(--focus-primary-color, #2563eb) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px var(--focus-secondary-color, rgba(37, 99, 235, 0.2)) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* ===== CORES DE ALTO CONTRASTE ===== */
+
+/* Tema claro (padrão) */
+:root {
+  --focus-primary-color: #2563eb; /* Azul primário */
+  --focus-secondary-color: rgba(37, 99, 235, 0.2); /* Azul secundário */
+  --focus-danger-color: #dc2626; /* Vermelho para ações destrutivas */
+  --focus-success-color: #059669; /* Verde para sucesso */
+  --focus-warning-color: #d97706; /* Laranja para avisos */
+  --focus-bg-contrast: rgba(255, 255, 255, 0.9); /* Fundo de contraste */
+}
+
+/* Tema escuro */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --focus-primary-color: #60a5fa; /* Azul mais claro */
+    --focus-secondary-color: rgba(96, 165, 250, 0.3);
+    --focus-danger-color: #f87171; /* Vermelho mais claro */
+    --focus-success-color: #34d399; /* Verde mais claro */
+    --focus-warning-color: #fbbf24; /* Laranja mais claro */
+    --focus-bg-contrast: rgba(0, 0, 0, 0.9);
+  }
+}
+
+/* Alto contraste forçado */
+@media (prefers-contrast: high) {
+  :root {
+    --focus-primary-color: #000000;
+    --focus-secondary-color: rgba(0, 0, 0, 0.3);
+    --focus-danger-color: #ff0000;
+    --focus-success-color: #008000;
+    --focus-warning-color: #ff8000;
+  }
+}
+
+/* ===== ELEMENTOS ESPECÍFICOS ===== */
+
+/* Botões */
+button:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--focus-primary-color) !important;
+  outline-offset: 2px !important;
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 6px var(--focus-secondary-color), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Botões de ação destrutiva */
+button.bg-red-500:focus-visible,
+button.bg-red-600:focus-visible,
+.btn-danger:focus-visible {
+  outline-color: var(--focus-danger-color) !important;
+  box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.2), 0 4px 12px rgba(220, 38, 38, 0.15) !important;
+}
+
+/* Botões de sucesso */
+button.bg-green-500:focus-visible,
+button.bg-green-600:focus-visible,
+.btn-success:focus-visible {
+  outline-color: var(--focus-success-color) !important;
+  box-shadow: 0 0 0 6px rgba(5, 150, 105, 0.2), 0 4px 12px rgba(5, 150, 105, 0.15) !important;
+}
+
+/* Inputs de formulário */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--focus-primary-color) !important;
+  outline-offset: 1px !important;
+  border-color: var(--focus-primary-color) !important;
+  box-shadow: 0 0 0 4px var(--focus-secondary-color), inset 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Inputs com erro */
+input.border-red-300:focus-visible,
+input[aria-invalid='true']:focus-visible {
+  outline-color: var(--focus-danger-color) !important;
+  border-color: var(--focus-danger-color) !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.2), inset 0 1px 2px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* Links */
+a:focus-visible {
+  outline: 2px solid var(--focus-primary-color) !important;
+  outline-offset: 2px !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 4px !important;
+  border-radius: 2px;
+  background: var(--focus-bg-contrast);
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+/* Modais e dialogs */
+[role='dialog']:focus-visible,
+.modal:focus-visible {
+  outline: 4px solid var(--focus-primary-color) !important;
+  outline-offset: -4px !important;
+  box-shadow: inset 0 0 0 8px var(--focus-secondary-color), 0 0 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ===== ELEMENTOS INTERATIVOS CUSTOMIZADOS ===== */
+
+/* Cartões de poker */
+.cartao-poker:focus-visible {
+  outline: 3px solid var(--focus-primary-color) !important;
+  outline-offset: 3px !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 0 0 6px var(--focus-secondary-color), 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+  z-index: 10 !important;
+}
+
+/* Elementos com tabindex custom */
+[tabindex='0']:focus-visible,
+[tabindex]:not([tabindex='-1']):focus-visible {
+  outline: 2px solid var(--focus-primary-color) !important;
+  outline-offset: 2px !important;
+  border-radius: 4px;
+  background: var(--focus-bg-contrast);
+}
+
+/* ===== ANIMAÇÕES E TRANSIÇÕES ===== */
+
+/* Animação de pulse para elementos importantes */
+@keyframes focus-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--focus-secondary-color);
+  }
+  50% {
+    box-shadow: 0 0 0 8px var(--focus-secondary-color);
+  }
+  100% {
+    box-shadow: 0 0 0 0 var(--focus-secondary-color);
+  }
+}
+
+/* Aplicar pulse em elementos críticos */
+.focus-pulse:focus-visible {
+  animation: focus-pulse 1.5s ease-in-out infinite;
+}
+
+/* Transições suaves para todos os elementos focáveis */
+button,
+input,
+textarea,
+select,
+a,
+[tabindex] {
+  transition: outline-color 0.2s ease, outline-width 0.2s ease, outline-offset 0.2s ease, box-shadow 0.2s ease,
+    transform 0.2s ease, border-color 0.2s ease !important;
+}
+
+/* ===== SKIP LINKS ===== */
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--focus-primary-color);
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 0 0 4px 4px;
+  font-weight: 600;
+  z-index: 9999;
+  transition: top 0.3s ease;
+}
+
+.skip-link:focus-visible {
+  top: 0;
+  outline: 3px solid white !important;
+  outline-offset: 2px !important;
+}
+
+/* ===== INDICADORES DE ESTADO ===== */
+
+/* Elemento focado + selecionado (ex: radio, checkbox) */
+input[type='radio']:focus-visible:checked,
+input[type='checkbox']:focus-visible:checked {
+  outline: 3px solid var(--focus-success-color) !important;
+  box-shadow: 0 0 0 6px rgba(5, 150, 105, 0.2), inset 0 0 0 2px white !important;
+}
+
+/* Elemento desabilitado com foco (não deveria acontecer, mas por segurança) */
+:disabled:focus-visible {
+  outline: 2px dashed #9ca3af !important;
+  outline-offset: 2px !important;
+  opacity: 0.6;
+}
+
+/* ===== UTILITÁRIOS ===== */
+
+/* Classe para remover foco temporariamente */
+.no-focus-visible:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Classe para forçar foco visível */
+.force-focus-visible {
+  outline: 3px solid var(--focus-primary-color) !important;
+  outline-offset: 2px !important;
+}
+
+/* Foco interno (para containers complexos) */
+.focus-within:focus-within {
+  outline: 2px solid var(--focus-secondary-color) !important;
+  outline-offset: 2px !important;
+  border-radius: 6px;
+}
+
+/* ===== MEDIA QUERIES PARA MOVIMENTO REDUZIDO ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Remover animações para usuários que preferem menos movimento */
+  .focus-pulse:focus-visible {
+    animation: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select,
+  a,
+  [tabindex] {
+    transition: none !important;
+  }
+
+  button:focus-visible {
+    transform: none !important;
+  }
+}
+
+/* ===== IMPRESSÃO ===== */
+
+@media print {
+  /* Remover indicadores de foco na impressão */
+  *:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}

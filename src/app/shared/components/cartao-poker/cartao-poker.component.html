@@ -1,5 +1,5 @@
 <div
-  class="w-16 h-24 md:w-20 md:h-28 bg-white rounded-lg shadow-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 relative"
+  class="cartao-poker w-16 h-24 md:w-20 md:h-28 bg-white rounded-lg shadow-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 relative focus-visible-enhanced"
   [class.border-poker-blue]="selecionado"
   [class.border-gray-200]="!selecionado"
   [class.bg-white]="!selecionado"
@@ -8,17 +8,35 @@
   [class.scale-110]="selecionado"
   [class.shadow-xl]="selecionado"
   [class.z-10]="selecionado"
-  [class.hover:border-gray-400]="!selecionado"
-  [class.hover:shadow-lg]="!selecionado"
+  [class.hover:border-gray-400]="!selecionado && !desabilitado"
+  [class.hover:shadow-lg]="!selecionado && !desabilitado"
   [class.opacity-50]="desabilitado"
   [class.cursor-not-allowed]="desabilitado"
-  (click)="!desabilitado && selecionar.emit(valor)">
-  <span class="text-2xl font-bold transition-all" [class.text-poker-blue]="selecionado">{{ valor }}</span>
+  [tabindex]="desabilitado ? -1 : 0"
+  [attr.role]="'button'"
+  [attr.aria-pressed]="selecionado"
+  [attr.aria-disabled]="desabilitado"
+  [attr.aria-label]="'Carta com valor ' + valor + (selecionado ? ', selecionada' : ', não selecionada')"
+  (click)="!desabilitado && selecionar.emit(valor)"
+  (keydown.enter)="!desabilitado && selecionar.emit(valor)"
+  (keydown.space)="!desabilitado && selecionar.emit(valor)">
+  <span
+    class="text-2xl font-bold transition-all pointer-events-none"
+    [class.text-poker-blue]="selecionado"
+    aria-hidden="true"
+    >{{ valor }}</span
+  >
 
   <!-- Indicador de seleção (visível apenas quando selecionado) -->
   <div
     *ngIf="selecionado"
-    class="absolute top-1 right-1 w-5 h-5 bg-poker-blue rounded-full flex items-center justify-center shadow-sm">
+    class="absolute top-1 right-1 w-5 h-5 bg-poker-blue rounded-full flex items-center justify-center shadow-sm"
+    aria-hidden="true">
     <span [innerHTML]="iconeSelecionado"></span>
   </div>
+
+  <!-- Texto de status para screen readers -->
+  <span class="sr-only">
+    {{ valor }}{{ selecionado ? ' selecionado' : '' }}{{ desabilitado ? ' desabilitado' : '' }}
+  </span>
 </div>
